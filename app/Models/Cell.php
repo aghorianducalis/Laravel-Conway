@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Babylon\Interfaces\Manifolds\Manifold;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -12,23 +13,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $y
  * @property int $z
  */
-class Cell extends Model
+class Cell extends Model implements Manifold
 {
     protected $table = 'cells';
 
     public $timestamps = false;
 
     /** @var int $ct */
-    protected $ct; // ct
+    public $ct; // ct
 
     /** @var int $x */
-    protected $x; // x
+    public $x; // x
 
     /** @var int $y */
-    protected $y; // y
+    public $y; // y
 
     /** @var int $z */
-    protected $z; // z
+    public $z; // z
 
     public function __construct(array $attributes = [])
     {
@@ -38,6 +39,11 @@ class Cell extends Model
         $this->x = $attributes['x'] ?? 0;
         $this->y = $attributes['y'] ?? 0;
         $this->z = $attributes['z'] ?? 0;
+    }
+
+    public function getDimension(): int
+    {
+        return 4;
     }
 
     /**

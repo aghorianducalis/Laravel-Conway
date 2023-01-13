@@ -24,7 +24,17 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Babylon\\": "src/",
+            "Babylon\\DTO\\": "src/DTO/",
+            "Babylon\\Factories\\": "src/Factories/",
+            "Babylon\\Interfaces\\": "src/Interfaces/",
+            "Babylon\\Interfaces\\DTO\\": "src/Interfaces/DTO/",
+            "Babylon\\Interfaces\\Factories\\": "src/Interfaces/Factories/",
+            "Babylon\\Interfaces\\Manifolds\\": "src/Interfaces/Manifolds/",
+            "Babylon\\Interfaces\\Repositories\\": "src/Interfaces/Repositories/",
+            "Babylon\\Interfaces\\Seeders\\": "src/Interfaces/Seeders/",
+            "Babylon\\Repositories\\": "src/Repositories/"
         }
     },
     "autoload-dev": {

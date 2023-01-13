@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Babylon\Interfaces\Manifolds\Manifold;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property int $state_id
  * @property int $generation
  */
-class CellState extends Pivot
+class CellState extends Pivot implements Manifold
 {
     /**
      * Indicates if the IDs are auto-incrementing.
@@ -28,5 +29,10 @@ class CellState extends Pivot
         $this->cell_id = $attributes['cell_id'] ?? 0;
         $this->state_id = $attributes['state_id'] ?? 0;
         $this->generation = $attributes['generation'] ?? 0;
+    }
+
+    public function getDimension(): int
+    {
+        return 3;
     }
 }
