@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DataSetController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,4 +16,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
+
+Route::namespace('conway')
+    /*->middleware('')*/
+    ->name('conway')
+    ->prefix('conway')
+    ->as('conway.')
+    ->group(function () {
+
+//        Route::get('/', [DataSetController::class, 'home'])->name('home');
+        Route::get('/{id}', [DataSetController::class, 'show'])->name('show');
+//        Route::post('/', [DataSetController::class, 'store'])->name('save');
+
+    });

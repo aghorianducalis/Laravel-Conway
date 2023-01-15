@@ -12,6 +12,40 @@ use Babylon\Interfaces\Repositories\Repository;
 class StateRepository implements Repository
 {
     /**
+     * @param $id
+     * @return StateDTO
+     */
+    public function getDTO($id): StateDTO
+    {
+        /** @var Manifold|State $model */
+        $model = State::query()->find($id);
+
+        $dto = new StateDTO(
+            $model->id,
+            $model->a,
+        );
+
+        return $dto;
+    }
+
+    /**
+     * @param array $ids
+     * @return StateSetDTO
+     */
+    public function getDTOSet(array $ids = []): StateSetDTO
+    {
+        $dtoSet = [];
+
+        foreach ($ids as $id) {
+            $dto = $this->getDTO($id);
+
+            $dtoSet[] = $dto;
+        }
+
+        return new StateSetDTO($dtoSet);
+    }
+
+    /**
      * @param DTO|StateDTO $entity
      * @return void
      */

@@ -12,6 +12,42 @@ use Babylon\Interfaces\Repositories\Repository;
 class CellStateRepository implements Repository
 {
     /**
+     * @param $id
+     * @return CellStateDTO
+     */
+    public function getDTO($id): CellStateDTO
+    {
+        /** @var Manifold|CellState $model */
+        $model = CellState::query()->find($id);
+
+        $dto = new CellStateDTO(
+            $model->id,
+            $model->cell_id,
+            $model->state_id,
+            $model->generation
+        );
+
+        return $dto;
+    }
+
+    /**
+     * @param array $ids
+     * @return CellStateSetDTO
+     */
+    public function getDTOSet(array $ids = []): CellStateSetDTO
+    {
+        $dtoSet = [];
+
+        foreach ($ids as $id) {
+            $dto = $this->getDTO($id);
+
+            $dtoSet[] = $dto;
+        }
+
+        return new CellStateSetDTO($dtoSet);
+    }
+
+    /**
      * @param DTO|CellStateDTO $entity
      * @return void
      */

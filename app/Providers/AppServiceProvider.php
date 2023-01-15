@@ -9,6 +9,7 @@ use Babylon\Factories\StateFactory;
 use Babylon\Repositories\CellContactRepository;
 use Babylon\Repositories\CellRepository;
 use Babylon\Repositories\CellStateRepository;
+use Babylon\Repositories\ConwayDataSetRepository;
 use Babylon\Repositories\StateRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         CellContactRepository::class    => CellContactRepository::class,
         StateRepository::class          => StateRepository::class,
         CellStateRepository::class      => CellStateRepository::class,
+        ConwayDataSetRepository::class  => ConwayDataSetRepository::class,
 
         CellFactory::class              => CellFactory::class,
         CellContactFactory::class       => CellContactFactory::class,

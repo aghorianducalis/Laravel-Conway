@@ -11,7 +11,20 @@ interface Repository
 
     public function saveEntitySet(DTO $entitySet): void;
 
-    // todo move to separate layer (mapper)
+    public function getDTO($id);
+
+    /**
+     * @param array $ids
+     * @return mixed|array|DTO|DTO[]
+     */
+    public function getDTOSet(array $ids = []);
+
+//    public function getEntity($id): Manifold;
+
+//    public function getEntitySet(array $ids = []): array;
+
+
+    // todo move to another layer (mapper)
     public static function toDTO(Manifold $entity): DTO;
 
     public static function toManifold(DTO $entity): Manifold;
