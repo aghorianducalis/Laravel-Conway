@@ -12,42 +12,6 @@ use Babylon\Interfaces\Repositories\Repository;
 class CellStateRepository implements Repository
 {
     /**
-     * todo input data logic
-     * якщо в живої клітини один чи немає живих сусідів – то вона помирає від «самотності»;
-     * якщо в живої клітини два чи три живих сусіди – то вона лишається жити;
-     * якщо в живої клітини чотири та більше живих сусідів – вона помирає від «перенаселення»;
-     * якщо в мертвої клітини рівно три живих сусіди – то вона оживає.
-     *
-     * @param int $generation
-     * @return array
-     */
-    public function generateNewCellStates(int $generation = 0): array
-    {
-        $result = [];
-
-//        if ($cellStateA === 0) {
-//            if ($neighbourStateCount === 3) {
-//                $result = 1;
-//            }
-//        } elseif ($cellStateA === 1) {
-//            if ($neighbourStateCount < 2) {
-//                $result = 0;
-//            } elseif (
-//                $neighbourStateCount === 2 ||
-//                $neighbourStateCount === 3
-//            ) {
-//                $result = 1;
-//            } else {
-//                $result = 0;
-//            }
-//        } else {
-//            $result = 0;
-//        }
-
-        return $result;
-    }
-
-    /**
      * @param $entityId
      * @return CellStateDTO
      */

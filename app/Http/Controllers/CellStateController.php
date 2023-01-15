@@ -29,15 +29,13 @@ class CellStateController extends Controller
      * Save a set of the cell states.
      *
      * @param \App\Http\Requests\ConwayCreateRequest $request
-//     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function saveMany(ConwayCreateRequest $request)
     {
         /** @var int|null $generation */
         $generation = $request->generation ?? 1;
 
-//        $dtoSet = $repository->getEntityDTOSetByGeneration($generation);
-//
-//        return response()->json($dtoSet->dtoSet);
+        return response()->json(25);
     }
 }

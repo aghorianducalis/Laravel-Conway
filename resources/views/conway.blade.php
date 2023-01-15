@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Conway</title>
 
@@ -423,12 +424,6 @@
         .map .cell:hover {
             opacity: 0.5;
         }
-
-        /* input data form */
-
-        form {
-            display: none;
-        }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 
@@ -477,13 +472,9 @@
         <div class="row">
             @php
                 for($y = 0; $y < $maximumY; $y++) {
-                    // todo find cell (ct, x, y, z) => find cell state (cell id, generation)
-//                    $cell = null;
-//                    $cellState = 1;
-                    $cellState = 1;
             @endphp
             <div class="col">
-                <div class="cell" data-state="{{ $cellState }}">
+                <div class="cell" data-state="{{ $cellState ?? 1 }}">
                     @php
                         //
                     @endphp
@@ -497,55 +488,137 @@
             }
         @endphp
     </div>
-    <form id="form">
-        @php
-
-            //
-            $counter = 0;
-
-                for($x = 1; $x <= $maximumX; $x++) {
-        @endphp
-        @php
-            for($y = 1; $y <= $maximumY; $y++) {
-                // todo find by counter
-                $cellId = 1;
-                // todo find by counter
-                $stateId = 1;
-        @endphp
-        <input type="hidden"
-               name="cell_states[{{ $counter }}][cell_id]"
-               value="{{ $cellId }}"
-        />
-        <input type="hidden"
-               name="cell_states[{{ $counter }}][state_id]"
-               value="{{ $stateId }}"
-        />
-        <input type="hidden"
-               name="cell_states[{{ $counter }}][generation]"
-               value="{{ ($generation + 1) }}"
-        />
-        @php
-            $counter++;
-        }
-    }
-        @endphp
-    </form>
 </div>
 <script>
-    $(".cell").click(function () {
-        // var input = $(this).find("input");
-        var stateIdInput = $(this).find("input [name=state_id]");
-        // var value = input.val();
-        var stateId = stateIdInput.val();
-        // alert(stateId);
-        var newValue = 2;
-        // stateIdInput.val(newValue);
-        // input.val(newValue);
+    jQuery(document).ready(function(){
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        let states;
+        let cells;
+        let cell_contacts;
+        let cell_states;
+
+        function requestSetStates() {
+            jQuery.ajax({
+                url: "{{ url('/states') }}",
+                method: 'get',
+                success: function(entities){
+                    states = entities;
+                }});
+        }
+
+        function requestSetCells() {
+            jQuery.ajax({
+                url: "{{ url('/cells') }}",
+                method: 'get',
+                success: function(entities){
+                    cells = entities;
+                }});
+        }
+
+        function requestSetCellContacts() {
+            jQuery.ajax({
+                url: "{{ url('/cell_contacts') }}",
+                method: 'get',
+                success: function(entities){
+                    cell_contacts = entities;
+                }});
+        }
+
+        function requestSetCellStates() {
+            jQuery.ajax({
+                url: "{{ url('/cell_states') }}",
+                method: 'get',
+                success: function(entities){
+                    cell_states = entities;
+                }});
+        }
+
+        /**
+         * якщо в живої клітини один чи немає живих сусідів – то вона помирає від «самотності»;
+         * якщо в живої клітини два чи три живих сусіди – то вона лишається жити;
+         * якщо в живої клітини чотири та більше живих сусідів – вона помирає від «перенаселення»;
+         * якщо в мертвої клітини рівно три живих сусіди – то вона оживає.
+         *
+         * @param generation
+         * @returns {*[]}
+         */
+        function generateNewCellStates(generation = 0) {
+            let newSet = [];
+
+//        if ($cellStateA === 0) {
+//            if ($neighbourStateCount === 3) {
+//                $result = 1;
+//            }
+//        } elseif ($cellStateA === 1) {
+//            if ($neighbourStateCount < 2) {
+//                $result = 0;
+//            } elseif (
+//                $neighbourStateCount === 2 ||
+//                $neighbourStateCount === 3
+//            ) {
+//                $result = 1;
+//            } else {
+//                $result = 0;
+//            }
+//        } else {
+//            $result = 0;
+//        }
+
+            // console.log(newSet);
+            return newSet;
+        }
+
+        function saveSetCellStates() {
+            let newCellStates = generateNewCellStates();
+            console.log(newCellStates);
+            // console.log(666);
+            // return;
+
+            jQuery.ajax({
+                url: "{{ url('/cell_states') }}",
+                method: 'post',
+                data: newCellStates,
+                // data: [],
+                success: function(result){
+                    console.log('success!');
+                    console.log(result);
+                }});
+        }
+
+        jQuery(".cell").click(function (e) {
+            e.preventDefault();
+
+            // var input = $(this).find("input");
+            // var stateIdInput = $(this).find("input [name=state_id]");
+            // var value = input.val();
+            // var stateId = stateIdInput.val();
+            // alert(stateId);
+            // var newValue = 2;
+            // stateIdInput.val(newValue);
+            // input.val(newValue);
+
+        });
+
+
+        // init entity sets
+
+        requestSetStates();
+        requestSetCells();
+        requestSetCellContacts();
+        requestSetCellStates();
+
     });
 </script>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.3.js"
+        integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM="
+        crossorigin="anonymous">
+</script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"></script>
