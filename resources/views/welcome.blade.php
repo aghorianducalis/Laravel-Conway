@@ -94,7 +94,7 @@
 
                             <div class="ml-12">
                                 <div class="mt-2 text-gray-600 dark:text-gray-400 text-sm">
-                                    <a href="{{ route('conway.show', 1) }}" class="underline">Babylon games</a> is a community driven portal and newsletter aggregating all of the latest and most important news in the Babylon ecosystem, including new game releases and tutorials.
+                                    <a href="{{ route('conway.create') }}" class="underline">Babylon games</a> is a community driven portal and newsletter aggregating all of the latest and most important news in the Babylon ecosystem, including new game releases and tutorials.
                                 </div>
                             </div>
                         </div>

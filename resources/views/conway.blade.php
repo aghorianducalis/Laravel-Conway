@@ -402,23 +402,56 @@
         }
     </style>
     <style>
-        .cell {
+
+        /* map */
+
+        .map {
+        }
+
+        .map .col {
+            max-width: 42px
+        }
+
+        .map .cell {
+            width: 42px;
+            height: 42px;
             background: #2580ff;
-            width: 20px;
-            height: 20px;
+            border: 1px solid white;
             cursor: pointer;
-            border: 1px white;
         }
 
-        .cell:hover {
-            background: yellow;
+        .map .cell:hover {
+            opacity: 0.5;
         }
 
-        #form .form-row {
-            display: flex;
+        /* input data form */
+
+        form {
+            display: none;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+
+    <!-- PHP -->
+    @php
+
+        if (!isset($generation)) {
+            $generation = 1;
+        }
+
+        /** @var int $ct */
+        $ct = 0;
+
+        /** @var int $maximumX */
+        $maximumX = 10;
+
+        /** @var int $maximumY */
+        $maximumY = 10;
+
+        /** @var int $z */
+        $z = 0;
+
+    @endphp
 </head>
 <body class="antialiased">
 <div
@@ -436,23 +469,25 @@
             @endauth
         </div>
     @endif
-    <form id="form">
+
+    <div class="container map">
         @php
-
-            /** @var \Babylon\DTO\ConwayDataSetDTO $dto */
-
-            for($x = 0; $x < 10; $x++) {
-
+            for($x = 0; $x < $maximumX; $x++) {
         @endphp
-        <div class="form-row">
+        <div class="row">
             @php
-                for($y = 0; $y < 10; $y++) {
+                for($y = 0; $y < $maximumY; $y++) {
+                    // todo find cell (ct, x, y, z) => find cell state (cell id, generation)
+//                    $cell = null;
+//                    $cellState = 1;
+                    $cellState = 1;
             @endphp
-            <div class="col cell">
-                <input type="hidden"
-                       name="cells[0][{{ $x }}][{{ $y }}][0]"
-                       value="{{ ($x + 1) * ($y + 1) }}"
-                />
+            <div class="col">
+                <div class="cell" data-state="{{ $cellState }}">
+                    @php
+                        //
+                    @endphp
+                </div>
             </div>
             @php
                 }
@@ -461,15 +496,51 @@
         @php
             }
         @endphp
+    </div>
+    <form id="form">
+        @php
+
+            //
+            $counter = 0;
+
+                for($x = 1; $x <= $maximumX; $x++) {
+        @endphp
+        @php
+            for($y = 1; $y <= $maximumY; $y++) {
+                // todo find by counter
+                $cellId = 1;
+                // todo find by counter
+                $stateId = 1;
+        @endphp
+        <input type="hidden"
+               name="cell_states[{{ $counter }}][cell_id]"
+               value="{{ $cellId }}"
+        />
+        <input type="hidden"
+               name="cell_states[{{ $counter }}][state_id]"
+               value="{{ $stateId }}"
+        />
+        <input type="hidden"
+               name="cell_states[{{ $counter }}][generation]"
+               value="{{ ($generation + 1) }}"
+        />
+        @php
+            $counter++;
+        }
+    }
+        @endphp
     </form>
 </div>
 <script>
     $(".cell").click(function () {
-        var input = $(this).find("input");
-        var value = input.val();
-        alert(value);
-        var newValue = value * 0;
-        input.val(newValue);
+        // var input = $(this).find("input");
+        var stateIdInput = $(this).find("input [name=state_id]");
+        // var value = input.val();
+        var stateId = stateIdInput.val();
+        // alert(stateId);
+        var newValue = 2;
+        // stateIdInput.val(newValue);
+        // input.val(newValue);
     });
 </script>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"

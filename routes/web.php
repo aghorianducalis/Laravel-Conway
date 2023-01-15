@@ -1,6 +1,10 @@
 <?php
 
-use App\Http\Controllers\DataSetController;
+use App\Http\Controllers\CellContactController;
+use App\Http\Controllers\CellController;
+use App\Http\Controllers\CellStateController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\StateController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,9 +18,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [PageController::class, 'home'])->name('home');
 
 Route::namespace('conway')
     /*->middleware('')*/
@@ -24,9 +26,42 @@ Route::namespace('conway')
     ->prefix('conway')
     ->as('conway.')
     ->group(function () {
+        Route::get('/', [PageController::class, 'create'])->name('create');
+    });
 
-//        Route::get('/', [DataSetController::class, 'home'])->name('home');
-        Route::get('/{id}', [DataSetController::class, 'show'])->name('show');
-//        Route::post('/', [DataSetController::class, 'store'])->name('save');
+Route::namespace('states')
+    /*->middleware('')*/
+    ->name('states')
+    ->prefix('states')
+    ->as('states.')
+    ->group(function () {
+        Route::get('/', [StateController::class, 'index'])->name('index');
+    });
 
+Route::namespace('cells')
+    /*->middleware('')*/
+    ->name('cells')
+    ->prefix('cells')
+    ->as('cells.')
+    ->group(function () {
+        Route::get('/', [CellController::class, 'index'])->name('index');
+    });
+
+Route::namespace('cell_contacts')
+    /*->middleware('')*/
+    ->name('cell_contacts')
+    ->prefix('cell_contacts')
+    ->as('cell_contacts.')
+    ->group(function () {
+        Route::get('/', [CellContactController::class, 'index'])->name('index');
+    });
+
+Route::namespace('cell_states')
+    /*->middleware('')*/
+    ->name('cell_states')
+    ->prefix('cell_states')
+    ->as('cell_state.')
+    ->group(function () {
+        Route::get('/{generation?}', [CellStateController::class, 'index'])->name('index');
+        Route::post('/', [CellStateController::class, 'saveMany'])->name('save');
     });

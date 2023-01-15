@@ -12,35 +12,35 @@ use Babylon\Interfaces\Repositories\Repository;
 class CellRepository implements Repository
 {
     /**
-     * @param $id
+     * @param $entityId
      * @return CellDTO
      */
-    public function getDTO($id): CellDTO
+    public function getEntityDTO($entityId): CellDTO
     {
         /** @var Manifold|Cell $model */
-        $model = Cell::query()->find($id);
+        $model = Cell::query()->find($entityId);
 
         $dto = new CellDTO(
-            $model->id,
-            $model->ct,
-            $model->x,
-            $model->y,
-            $model->z,
+            $model->getAttribute('id'),
+            $model->getAttribute('ct'),
+            $model->getAttribute('x'),
+            $model->getAttribute('y'),
+            $model->getAttribute('z'),
         );
 
         return $dto;
     }
 
     /**
-     * @param array $ids
+     * @param array $entityIds
      * @return CellSetDTO
      */
-    public function getDTOSet(array $ids = []): CellSetDTO
+    public function getEntityDTOSet(array $entityIds = []): CellSetDTO
     {
         $dtoSet = [];
 
-        foreach ($ids as $id) {
-            $dto = $this->getDTO($id);
+        foreach ($entityIds as $id) {
+            $dto = $this->getEntityDTO($id);
 
             $dtoSet[] = $dto;
         }

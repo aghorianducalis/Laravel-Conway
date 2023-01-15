@@ -12,33 +12,33 @@ use Babylon\Interfaces\Repositories\Repository;
 class CellContactRepository implements Repository
 {
     /**
-     * @param $id
+     * @param $entityId
      * @return CellContactDTO
      */
-    public function getDTO($id): CellContactDTO
+    public function getEntityDTO($entityId): CellContactDTO
     {
         /** @var Manifold|CellContact $model */
-        $model = CellContact::query()->find($id);
+        $model = CellContact::query()->find($entityId);
 
         $dto = new CellContactDTO(
-            $model->id,
-            $model->cell_1_id,
-            $model->cell_2_id
+            $model->getAttribute('id'),
+            $model->getAttribute('cell_1_id'),
+            $model->getAttribute('cell_2_id'),
         );
 
         return $dto;
     }
 
     /**
-     * @param array $ids
+     * @param array $entityIds
      * @return CellContactSetDTO
      */
-    public function getDTOSet(array $ids = []): CellContactSetDTO
+    public function getEntityDTOSet(array $entityIds = []): CellContactSetDTO
     {
         $dtoSet = [];
 
-        foreach ($ids as $id) {
-            $dto = $this->getDTO($id);
+        foreach ($entityIds as $id) {
+            $dto = $this->getEntityDTO($id);
 
             $dtoSet[] = $dto;
         }

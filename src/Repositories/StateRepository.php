@@ -12,32 +12,32 @@ use Babylon\Interfaces\Repositories\Repository;
 class StateRepository implements Repository
 {
     /**
-     * @param $id
+     * @param $entityId
      * @return StateDTO
      */
-    public function getDTO($id): StateDTO
+    public function getEntityDTO($entityId): StateDTO
     {
         /** @var Manifold|State $model */
-        $model = State::query()->find($id);
+        $model = State::query()->find($entityId);
 
         $dto = new StateDTO(
-            $model->id,
-            $model->a,
+            $model->getAttribute('id'),
+            $model->getAttribute('a'),
         );
 
         return $dto;
     }
 
     /**
-     * @param array $ids
+     * @param array $entityIds
      * @return StateSetDTO
      */
-    public function getDTOSet(array $ids = []): StateSetDTO
+    public function getEntityDTOSet(array $entityIds = []): StateSetDTO
     {
         $dtoSet = [];
 
-        foreach ($ids as $id) {
-            $dto = $this->getDTO($id);
+        foreach ($entityIds as $id) {
+            $dto = $this->getEntityDTO($id);
 
             $dtoSet[] = $dto;
         }

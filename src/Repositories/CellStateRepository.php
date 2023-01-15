@@ -12,34 +12,99 @@ use Babylon\Interfaces\Repositories\Repository;
 class CellStateRepository implements Repository
 {
     /**
-     * @param $id
+     * todo input data logic
+     * якщо в живої клітини один чи немає живих сусідів – то вона помирає від «самотності»;
+     * якщо в живої клітини два чи три живих сусіди – то вона лишається жити;
+     * якщо в живої клітини чотири та більше живих сусідів – вона помирає від «перенаселення»;
+     * якщо в мертвої клітини рівно три живих сусіди – то вона оживає.
+     *
+     * @param int $generation
+     * @return array
+     */
+    public function generateNewCellStates(int $generation = 0): array
+    {
+        $result = [];
+
+//        if ($cellStateA === 0) {
+//            if ($neighbourStateCount === 3) {
+//                $result = 1;
+//            }
+//        } elseif ($cellStateA === 1) {
+//            if ($neighbourStateCount < 2) {
+//                $result = 0;
+//            } elseif (
+//                $neighbourStateCount === 2 ||
+//                $neighbourStateCount === 3
+//            ) {
+//                $result = 1;
+//            } else {
+//                $result = 0;
+//            }
+//        } else {
+//            $result = 0;
+//        }
+
+        return $result;
+    }
+
+    /**
+     * @param $entityId
      * @return CellStateDTO
      */
-    public function getDTO($id): CellStateDTO
+    public function getEntityDTO($entityId): CellStateDTO
     {
         /** @var Manifold|CellState $model */
-        $model = CellState::query()->find($id);
+        $model = CellState::query()->find($entityId);
 
         $dto = new CellStateDTO(
-            $model->id,
-            $model->cell_id,
-            $model->state_id,
-            $model->generation
+            $model->getAttribute('id'),
+            $model->getAttribute('cell_id'),
+            $model->getAttribute('state_id'),
+            $model->getAttribute('generation'),
         );
 
         return $dto;
     }
 
     /**
-     * @param array $ids
+     * @param array $entityIds
      * @return CellStateSetDTO
      */
-    public function getDTOSet(array $ids = []): CellStateSetDTO
+    public function getEntityDTOSet(array $entityIds = []): CellStateSetDTO
     {
         $dtoSet = [];
 
-        foreach ($ids as $id) {
-            $dto = $this->getDTO($id);
+        foreach ($entityIds as $id) {
+            $dto = $this->getEntityDTO($id);
+
+            $dtoSet[] = $dto;
+        }
+
+        return new CellStateSetDTO($dtoSet);
+    }
+
+    /**
+     * @param int $generation
+     * @return CellStateSetDTO
+     */
+    public function getEntityDTOSetByGeneration(int $generation = 0): CellStateSetDTO
+    {
+        /** @var Manifold|CellState $model */
+        $models = CellState::query()
+            ->where('generation', '=', $generation)
+            ->get();
+
+        $dtoSet = [];
+
+        foreach ($models as $model) {
+            /** @var CellState $model */
+
+            $dto = new CellStateDTO(
+                $model->getAttribute('id'),
+                $model->getAttribute('cell_id'),
+                $model->getAttribute('state_id'),
+                $model->getAttribute('generation'),
+            );
 
             $dtoSet[] = $dto;
         }

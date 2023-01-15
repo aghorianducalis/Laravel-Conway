@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreDataSetRequest extends FormRequest
+class ConwayCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,7 @@ class StoreDataSetRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'generation' => 'int',
         ];
     }
 }

@@ -11,13 +11,13 @@ interface Repository
 
     public function saveEntitySet(DTO $entitySet): void;
 
-    public function getDTO($id);
+    public function getEntityDTO($entityId);
 
     /**
-     * @param array $ids
+     * @param array $entityIds
      * @return mixed|array|DTO|DTO[]
      */
-    public function getDTOSet(array $ids = []);
+    public function getEntityDTOSet(array $entityIds = []);
 
 //    public function getEntity($id): Manifold;
 
