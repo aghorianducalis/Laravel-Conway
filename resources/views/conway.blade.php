@@ -468,7 +468,7 @@
             <div class="col">
                 <div class="cell"
                      data-id=
-                     data-ct=0
+                         data-ct=0
                      data-x={{ $x }}
                      data-y={{ $y }}
                      data-z=0
@@ -492,130 +492,64 @@
     jQuery(document).ready(function() {
 
         /*
-        variables, data sets etc.
+        Initialization of variables, data sets etc.
          */
 
+        let generation = 1;
         let states;
         let cells;
         let cell_contacts;
         let cell_state_map = [];
-
-        // let cell_state_map = {
-        //     1: {
-        //         generation: 1,
-        //         cell_states: [],
-        //     },
-        // };
-
-        /*
-        let cell_state_map = [
-            {
-                generation: 1,
-                cell_states: [
-                    {
-                        id: 1,
-                        cell_id: 1,
-                        state_id: 2,
-                        generation: 1,
-                    },
-                ],
-            },
-
-            // ...
-
-            {
-                generation: 4,
-                cell_states: [
-                    {
-                        id: 420,
-                        cell_id: 17,
-                        state_id: 2,
-                        generation: 4,
-                    },
-                ],
-            },
-
-            // ...
-
-        ];
-        */
 
         // DOM objects
 
         let $domCellStateMap = jQuery(".map");
 
         /*
-        variables
+        ./ Initialization
          */
-
 
         /*
         API services
          */
 
-        let requestStates = function requestStates() {
-            if (typeof states === "undefined") {
-                jQuery.ajax({
-                    url: "{{ route('states.index') }}",
-                    method: 'get',
-                    success: function(entities) {
-                        states = entities;
-                    }});
-            }
+        function requestStates() {
+            jQuery.ajax({
+                url: "{{ route('states.index') }}",
+                method: 'get',
+                success: function(response) {
+                    states = structuredClone(response);
+                }});
         }
 
-        let requestCells = function requestCells() {
-            if (typeof cells === "undefined") {
-                jQuery.ajax({
-                    url: "{{ route('cells.index') }}",
-                    method: 'get',
-                    success: function(entities) {
-                        cells = entities;
-                    }});
-            }
+        function requestCells() {
+            jQuery.ajax({
+                url: "{{ route('cells.index') }}",
+                method: 'get',
+                success: function(response) {
+                    cells = structuredClone(response);
+                }});
         }
 
-        let requestCellContacts = function requestCellContacts() {
-            if (typeof cell_contacts === "undefined") {
-                jQuery.ajax({
-                    url: "{{ route('cell_contacts.index') }}",
-                    method: 'get',
-                    success: function(entities) {
-                        cell_contacts = entities;
-                    }});
-            }
+        function requestCellContacts() {
+            jQuery.ajax({
+                url: "{{ route('cell_contacts.index') }}",
+                method: 'get',
+                success: function(response) {
+                    cell_contacts = structuredClone(response);
+                }});
         }
 
-        let requestCellStates = function requestCellStates(generation) {
-            if (typeof cell_state_map[generation] === "undefined") {
-                jQuery.ajax({
-                    url: "{{ route('cell_states.index') }}" + "/" + generation,
-                    method: 'get',
-                    success: function(entities) {
-                        cell_state_map[generation] = entities;
-                        console.log('hey!');
-                        console.log(generation);
-                        console.log(entities);
-                        console.log(cell_state_map);
-
-                        let newCellStates = createNewCellStates(generation + 1);
-                        console.log('newCellStates: =======================+++++');
-                        console.log(newCellStates);
-                        console.log('return...');
-                        return;
-                        // requestSaveCellStates(newCellStates);
-                        // if(true) {
-                        //     console.log(9);
-                        //     generation++;
-                        //     // cell_state_map[generation] = ;
-                        // }
-                    }});
-            }
+        function requestCellStates(generation) {
+            jQuery.ajax({
+                url: "{{ route('cell_states.index') }}" + "/" + generation,
+                method: 'get',
+                success: function(response) {
+                    cell_state_map[generation] = structuredClone(response);
+                }});
         }
 
-        let responseSaveCellStates = {};
-
-        let requestSaveCellStates = function requestSaveCellStates(cellStates) {
+        function requestSaveCellStates(cellStates) {
 
             $.ajaxSetup({
                 headers: {
@@ -628,8 +562,12 @@
                 method: 'post',
                 data: cellStates,
                 success: function(response) {
-                    console.log('success! saveCellStates() request successive.');
-                    responseSaveCellStates = response;
+                    console.log('requestSaveCellStates() success! request successive. response:');
+                    console.log(response);
+                    ++generation;
+                    cell_state_map[generation] = structuredClone(response);
+                    console.log("finish");
+                    console.log(cell_state_map);
                 }});
         }
 
@@ -648,37 +586,62 @@
          * якщо в мертвої клітини рівно три живих сусіди – то вона оживає.
          *
          * @param generation
-         * @returns {*[]}
+         * @param states
+         * @param cells
+         * @param cell_contacts
+         * @param previous_cell_states
          */
-        function createNewCellStates(generation) {
-            let newSet = [];
-            console.log("generateNewCellStates()");
+        function createNewCellStates(
+            generation,
+            states = [],
+            cells = [],
+            cell_contacts = [],
+            previous_cell_states = []
+        ) {
+            console.log("createNewCellStates()");
+
+            // here we already got all necessary data:
+            // states, cells, cell contacts, cell states for previous generation (generation)
+
             console.log(generation);
+            console.log(states);
+            console.log(cells);
+            console.log(cell_contacts);
+            console.log(previous_cell_states);
             console.log(cell_state_map);
 
-//        if ($cellStateA === 0) {
-//            if ($neighbourStateCount === 3) {
-//                $result = 1;
-//            }
-//        } elseif ($cellStateA === 1) {
-//            if ($neighbourStateCount < 2) {
-//                $result = 0;
-//            } elseif (
-//                $neighbourStateCount === 2 ||
-//                $neighbourStateCount === 3
-//            ) {
-//                $result = 1;
-//            } else {
-//                $result = 0;
-//            }
-//        } else {
-//            $result = 0;
-//        }
+            let new_cell_states = [];
 
-            // console.log(newSet);
-            return newSet;
+            // todo generate new cell state array
+
+            let cellStateA;
+            let neighbourStateCount;
+            let result;
+
+            if (cellStateA === 0) {
+                if (neighbourStateCount === 3) {
+                    result = 1;
+                }
+            } else if (cellStateA === 1) {
+                if (neighbourStateCount < 2) {
+                    result = 0;
+                } else if (
+                    neighbourStateCount === 2 ||
+                    neighbourStateCount === 3
+                ) {
+                    result = 1;
+                } else {
+                    result = 0;
+                }
+            } else {
+                result = 0;
+            }
+
+            console.log("new_cell_states:");
+            console.log(new_cell_states);
+
+            return new_cell_states;
         }
-
         /*
         ./ data generation
          */
@@ -687,8 +650,16 @@
         User input
          */
 
+        console.log("Summertime sadness");
+
+        requestStates();
+        requestCells();
+        requestCellContacts();
+        requestCellStates(generation);
+
         jQuery(".cell").click(function (e) {
             e.preventDefault();
+            console.log("click!");
 
             // let input = $(this).find("input");
             // let stateIdInput = $(this).find("input [name=state_id]");
@@ -699,6 +670,17 @@
             // stateIdInput.val(newValue);
             // input.val(newValue);
 
+            console.log('hey!');
+
+            var generatedCellStateArray = createNewCellStates(
+                generation,
+                states,
+                cells,
+                cell_contacts,
+                cell_state_map[generation],
+            );
+
+            requestSaveCellStates(generatedCellStateArray);
         });
 
         /*
@@ -741,24 +723,6 @@
 
         /*
         ./ Output
-         */
-
-
-        /*
-        Game
-         */
-
-        // initialization + get entity sets
-
-        let generation = 1;
-
-        requestStates();
-        requestCells();
-        requestCellContacts();
-        requestCellStates(generation);
-
-        /*
-        ./ Game
          */
 
     });
