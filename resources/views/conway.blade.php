@@ -426,27 +426,6 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
-
-    <!-- PHP -->
-    @php
-
-        if (!isset($generation)) {
-            $generation = 1;
-        }
-
-        /** @var int $ct */
-        $ct = 0;
-
-        /** @var int $maximumX */
-        $maximumX = 10;
-
-        /** @var int $maximumY */
-        $maximumY = 10;
-
-        /** @var int $z */
-        $z = 0;
-
-    @endphp
 </head>
 <body class="antialiased">
 <div
@@ -467,6 +446,19 @@
 
     <div class="container map">
         @php
+
+            /** @var int $ct */
+            $ct = 0;
+
+            /** @var int $maximumX */
+            $maximumX = 10;
+
+            /** @var int $maximumY */
+            $maximumY = 10;
+
+            /** @var int $z */
+            $z = 0;
+
             for($x = 0; $x < $maximumX; $x++) {
         @endphp
         <div class="row">
@@ -474,7 +466,14 @@
                 for($y = 0; $y < $maximumY; $y++) {
             @endphp
             <div class="col">
-                <div class="cell" data-state="{{ $cellState ?? 1 }}">
+                <div class="cell"
+                     data-id=
+                     data-ct=0
+                     data-x={{ $x }}
+                     data-y={{ $y }}
+                     data-z=0
+                     data-state_id=1
+                >
                     @php
                         //
                     @endphp
@@ -490,54 +489,157 @@
     </div>
 </div>
 <script>
-    jQuery(document).ready(function(){
+    jQuery(document).ready(function() {
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+        /*
+        variables, data sets etc.
+         */
 
         let states;
         let cells;
         let cell_contacts;
-        let cell_states;
+        let cell_state_map = [];
 
-        function requestSetStates() {
-            jQuery.ajax({
-                url: "{{ url('/states') }}",
-                method: 'get',
-                success: function(entities){
-                    states = entities;
-                }});
+        // let cell_state_map = {
+        //     1: {
+        //         generation: 1,
+        //         cell_states: [],
+        //     },
+        // };
+
+        /*
+        let cell_state_map = [
+            {
+                generation: 1,
+                cell_states: [
+                    {
+                        id: 1,
+                        cell_id: 1,
+                        state_id: 2,
+                        generation: 1,
+                    },
+                ],
+            },
+
+            // ...
+
+            {
+                generation: 4,
+                cell_states: [
+                    {
+                        id: 420,
+                        cell_id: 17,
+                        state_id: 2,
+                        generation: 4,
+                    },
+                ],
+            },
+
+            // ...
+
+        ];
+        */
+
+        // DOM objects
+
+        let $domCellStateMap = jQuery(".map");
+
+        /*
+        variables
+         */
+
+
+        /*
+        API services
+         */
+
+        let requestStates = function requestStates() {
+            if (typeof states === "undefined") {
+                jQuery.ajax({
+                    url: "{{ route('states.index') }}",
+                    method: 'get',
+                    success: function(entities) {
+                        states = entities;
+                    }});
+            }
         }
 
-        function requestSetCells() {
-            jQuery.ajax({
-                url: "{{ url('/cells') }}",
-                method: 'get',
-                success: function(entities){
-                    cells = entities;
-                }});
+        let requestCells = function requestCells() {
+            if (typeof cells === "undefined") {
+                jQuery.ajax({
+                    url: "{{ route('cells.index') }}",
+                    method: 'get',
+                    success: function(entities) {
+                        cells = entities;
+                    }});
+            }
         }
 
-        function requestSetCellContacts() {
-            jQuery.ajax({
-                url: "{{ url('/cell_contacts') }}",
-                method: 'get',
-                success: function(entities){
-                    cell_contacts = entities;
-                }});
+        let requestCellContacts = function requestCellContacts() {
+            if (typeof cell_contacts === "undefined") {
+                jQuery.ajax({
+                    url: "{{ route('cell_contacts.index') }}",
+                    method: 'get',
+                    success: function(entities) {
+                        cell_contacts = entities;
+                    }});
+            }
         }
 
-        function requestSetCellStates() {
+        let requestCellStates = function requestCellStates(generation) {
+            if (typeof cell_state_map[generation] === "undefined") {
+                jQuery.ajax({
+                    url: "{{ route('cell_states.index') }}" + "/" + generation,
+                    method: 'get',
+                    success: function(entities) {
+                        cell_state_map[generation] = entities;
+                        console.log('hey!');
+                        console.log(generation);
+                        console.log(entities);
+                        console.log(cell_state_map);
+
+                        let newCellStates = createNewCellStates(generation + 1);
+                        console.log('newCellStates: =======================+++++');
+                        console.log(newCellStates);
+                        console.log('return...');
+                        return;
+                        // requestSaveCellStates(newCellStates);
+                        // if(true) {
+                        //     console.log(9);
+                        //     generation++;
+                        //     // cell_state_map[generation] = ;
+                        // }
+                    }});
+            }
+        }
+
+        let responseSaveCellStates = {};
+
+        let requestSaveCellStates = function requestSaveCellStates(cellStates) {
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
             jQuery.ajax({
                 url: "{{ url('/cell_states') }}",
-                method: 'get',
-                success: function(entities){
-                    cell_states = entities;
+                method: 'post',
+                data: cellStates,
+                success: function(response) {
+                    console.log('success! saveCellStates() request successive.');
+                    responseSaveCellStates = response;
                 }});
         }
+
+        /*
+        ./ API services
+         */
+
+        /*
+        data generation
+         */
 
         /**
          * якщо в живої клітини один чи немає живих сусідів – то вона помирає від «самотності»;
@@ -548,8 +650,11 @@
          * @param generation
          * @returns {*[]}
          */
-        function generateNewCellStates(generation = 0) {
+        function createNewCellStates(generation) {
             let newSet = [];
+            console.log("generateNewCellStates()");
+            console.log(generation);
+            console.log(cell_state_map);
 
 //        if ($cellStateA === 0) {
 //            if ($neighbourStateCount === 3) {
@@ -574,44 +679,87 @@
             return newSet;
         }
 
-        function saveSetCellStates() {
-            let newCellStates = generateNewCellStates();
-            console.log(newCellStates);
-            // console.log(666);
-            // return;
+        /*
+        ./ data generation
+         */
 
-            jQuery.ajax({
-                url: "{{ url('/cell_states') }}",
-                method: 'post',
-                data: newCellStates,
-                // data: [],
-                success: function(result){
-                    console.log('success!');
-                    console.log(result);
-                }});
-        }
+        /*
+        User input
+         */
 
         jQuery(".cell").click(function (e) {
             e.preventDefault();
 
-            // var input = $(this).find("input");
-            // var stateIdInput = $(this).find("input [name=state_id]");
-            // var value = input.val();
-            // var stateId = stateIdInput.val();
+            // let input = $(this).find("input");
+            // let stateIdInput = $(this).find("input [name=state_id]");
+            // let value = input.val();
+            // let stateId = stateIdInput.val();
             // alert(stateId);
-            // var newValue = 2;
+            // let newValue = 2;
             // stateIdInput.val(newValue);
             // input.val(newValue);
 
         });
 
+        /*
+        ./ User input
+         */
 
-        // init entity sets
+        /*
+        Output
+         */
 
-        requestSetStates();
-        requestSetCells();
-        requestSetCellContacts();
-        requestSetCellStates();
+        function updateDOMCellStateMap(generation) {
+
+            // console.log("updateDOMCellStateMap(): generation = " + generation);
+            let cellStateDataArray = cell_state_map[generation];
+            // console.log(cellStateDataArray);
+
+            let x = 0;
+            let y = 0;
+
+            // todo find cell data by ct, x, y, z (generation?)
+            let cellData = cellStateDataArray[1];
+            // console.log("cellData");
+            // console.log(cellData);
+
+            // get the cell's id and related state
+            let cellId = cellData;
+            let cellStateId = cellData;
+            let newValue = 2;
+
+            // todo check
+            let $domCell = $domCellStateMap.find(".cell[data-x=" + x + "]" + "[data-y=" + y + "]");
+            // console.log("$domCell");
+            // console.log($domCell);
+
+            // set dom cell attributes with data
+            $domCell.attr("id", cellId);
+            $domCell.attr("state_id", cellStateId);
+            // alert(stateId);
+        }
+
+        /*
+        ./ Output
+         */
+
+
+        /*
+        Game
+         */
+
+        // initialization + get entity sets
+
+        let generation = 1;
+
+        requestStates();
+        requestCells();
+        requestCellContacts();
+        requestCellStates(generation);
+
+        /*
+        ./ Game
+         */
 
     });
 </script>

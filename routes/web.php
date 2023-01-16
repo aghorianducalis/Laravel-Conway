@@ -60,7 +60,7 @@ Route::namespace('cell_states')
     /*->middleware('')*/
     ->name('cell_states')
     ->prefix('cell_states')
-    ->as('cell_state.')
+    ->as('cell_states.')
     ->group(function () {
         Route::get('/{generation?}', [CellStateController::class, 'index'])->name('index');
         Route::post('/', [CellStateController::class, 'saveMany'])->name('save');
