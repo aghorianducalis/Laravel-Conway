@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ConwayCreateRequest;
+use App\Models\CellState;
 use Babylon\DTO\CellStateDTO;
 use Babylon\DTO\CellStateSetDTO;
 use Babylon\Repositories\CellStateRepository;
@@ -31,40 +32,28 @@ class CellStateController extends Controller
      * Save a set of the cell states.
      *
      * @param \App\Http\Requests\ConwayCreateRequest $request
+     * @param \Babylon\Repositories\CellStateRepository $repository
      * @return \Illuminate\Http\JsonResponse
      */
     public function saveMany(ConwayCreateRequest $request, CellStateRepository $repository)
     {
         /** @var int|null $generation */
-        $generation = $request->generation ?? 1;
-        $allData = $request->all();
-        $validatedData = $request->validated();
+        $generation = $request->generation;
 
         /** @var array|CellStateDTO[] $dtoArray */
         $dtoArray = [];
 
-//        $id = 1;
-//        $state_id = 1;
+        foreach ($request->cell_states as $entity) {
 
-//        /** @var Manifold|CellDTO $entity */
-//        foreach ($request->cell_states as $entity) {
-//
-//            $dto = new CellStateDTO($id, $entity->id, $state_id, $generation);
-//
-//            $dtoArray[] = $dto;
-//
-//            $id = $id + 1;
-//        }
+            /** @var CellState $cellState */
+            $cellState = CellState::query()->create($entity); // todo create record using repository
+            $dto = $repository->getEntityDTO($cellState->id);
+
+            $dtoArray[] = $dto;
+        }
 
         $dtoSet = new CellStateSetDTO($dtoArray);
-        $repository->saveEntitySet($dtoSet);
 
-        return response()->json(compact(
-            'generation',
-            'allData',
-            'validatedData',
-            'dtoArray',
-            'dtoSet',
-        ));
+        return response()->json($dtoSet->dtoSet);
     }
 }

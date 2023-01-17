@@ -444,7 +444,15 @@
         </div>
     @endif
 
-    <div class="container map">
+        <button type="button"
+                class="btn btn-primary btn-outline-primary"
+                id="button"
+                data-toggle="button"
+                aria-pressed="false"
+                autocomplete="off"
+        >TEMPO!</button>
+
+        <div class="container map">
         @php
 
             /** @var int $ct */
@@ -491,6 +499,12 @@
 <script>
     jQuery(document).ready(function() {
 
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
         /*
         Initialization of variables, data sets etc.
          */
@@ -502,8 +516,8 @@
         let cell_state_map = [];
 
         // DOM objects
-
         let $domCellStateMap = jQuery(".map");
+        let $domButton = jQuery("#button");
 
         /*
         ./ Initialization
@@ -513,7 +527,7 @@
         API services
          */
 
-        function requestStates() {
+        function requestGetStates() {
             jQuery.ajax({
                 url: "{{ route('states.index') }}",
                 method: 'get',
@@ -522,7 +536,7 @@
                 }});
         }
 
-        function requestCells() {
+        function requestGetCells() {
             jQuery.ajax({
                 url: "{{ route('cells.index') }}",
                 method: 'get',
@@ -531,7 +545,7 @@
                 }});
         }
 
-        function requestCellContacts() {
+        function requestGetCellContacts() {
             jQuery.ajax({
                 url: "{{ route('cell_contacts.index') }}",
                 method: 'get',
@@ -540,7 +554,7 @@
                 }});
         }
 
-        function requestCellStates(generation) {
+        function requestGetCellStates(generation) {
             jQuery.ajax({
                 url: "{{ route('cell_states.index') }}" + "/" + generation,
                 method: 'get',
@@ -551,23 +565,20 @@
 
         function requestSaveCellStates(cellStates) {
 
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
+            let new_generation = generation + 1;
 
             jQuery.ajax({
                 url: "{{ url('/cell_states') }}",
                 method: 'post',
-                data: cellStates,
+                data: {
+                    generation: new_generation,
+                    cell_states: cellStates,
+                },
                 success: function(response) {
-                    console.log('requestSaveCellStates() success! request successive. response:');
-                    console.log(response);
-                    ++generation;
+                    // console.log('requestSaveCellStates() success! request successive. response:');
+                    // console.log(response);
+                    generation = new_generation;
                     cell_state_map[generation] = structuredClone(response);
-                    console.log("finish");
-                    console.log(cell_state_map);
                 }});
         }
 
@@ -576,7 +587,7 @@
          */
 
         /*
-        data generation
+        Data generation
          */
 
         /**
@@ -584,6 +595,9 @@
          * якщо в живої клітини два чи три живих сусіди – то вона лишається жити;
          * якщо в живої клітини чотири та більше живих сусідів – вона помирає від «перенаселення»;
          * якщо в мертвої клітини рівно три живих сусіди – то вона оживає.
+         *
+         * here we already got all necessary data:
+         * states, cells, cell contacts, cell states for previous generation
          *
          * @param generation
          * @param states
@@ -593,55 +607,64 @@
          */
         function createNewCellStates(
             generation,
-            states = [],
-            cells = [],
-            cell_contacts = [],
-            previous_cell_states = []
-        ) {
-            console.log("createNewCellStates()");
-
-            // here we already got all necessary data:
-            // states, cells, cell contacts, cell states for previous generation (generation)
-
-            console.log(generation);
-            console.log(states);
-            console.log(cells);
-            console.log(cell_contacts);
-            console.log(previous_cell_states);
-            console.log(cell_state_map);
+            states,
+            cells,
+            cell_contacts,
+            previous_cell_states,
+        )
+        {
+            // console.log("createNewCellStates()");
+            // console.log(generation);
+            // console.log(states);
+            // console.log(cells);
+            // console.log(cell_contacts);
+            // console.log(previous_cell_states);
 
             let new_cell_states = [];
+            let new_generation = generation + 1;
 
-            // todo generate new cell state array
+            previous_cell_states.forEach(function (cell_state, index, array) {
+                // console.log("forEach");
+                // console.log(cell_state);
 
-            let cellStateA;
-            let neighbourStateCount;
-            let result;
+                let cell_id = cell_state.cell_id;
+                let state_id_old = cell_state.state_id;
+                let cell_state_id_new = state_id_old;
+                let cell_state_new;
 
-            if (cellStateA === 0) {
-                if (neighbourStateCount === 3) {
-                    result = 1;
-                }
-            } else if (cellStateA === 1) {
-                if (neighbourStateCount < 2) {
-                    result = 0;
-                } else if (
-                    neighbourStateCount === 2 ||
-                    neighbourStateCount === 3
-                ) {
-                    result = 1;
-                } else {
-                    result = 0;
-                }
-            } else {
-                result = 0;
-            }
+                let neighbourStateCount = 3; // todo
+                //
+                // if (stateIdOld === 1) {
+                //     if (neighbourStateCount === 3) {
+                //         cellStateIdNew = 1;
+                //     }
+                // } else if (stateIdOld === 2) {
+                //     if (neighbourStateCount < 2) {
+                //         cellStateIdNew = 1;
+                //     } else if (
+                //         neighbourStateCount === 2 ||
+                //         neighbourStateCount === 3
+                //     ) {
+                //         cellStateIdNew = 2;
+                //     } else {
+                //         cellStateIdNew = 1;
+                //     }
+                // } else {
+                //     cellStateIdNew = 1;
+                // }
 
-            console.log("new_cell_states:");
-            console.log(new_cell_states);
+                cell_state_new = {
+                    cell_id: cell_id,
+                    state_id: cell_state_id_new,
+                    generation: new_generation,
+                };
+
+                new_cell_states.push(cell_state_new);
+            });
 
             return new_cell_states;
         }
+
         /*
         ./ data generation
          */
@@ -652,10 +675,24 @@
 
         console.log("Summertime sadness");
 
-        requestStates();
-        requestCells();
-        requestCellContacts();
-        requestCellStates(generation);
+        requestGetStates();
+        requestGetCells();
+        requestGetCellContacts();
+        requestGetCellStates(generation);
+
+        $domButton.click(function (e) {
+            e.preventDefault();
+
+            var generatedCellStateArray = createNewCellStates(
+                generation,
+                states,
+                cells,
+                cell_contacts,
+                cell_state_map[generation],
+            );
+
+            requestSaveCellStates(generatedCellStateArray);
+        });
 
         jQuery(".cell").click(function (e) {
             e.preventDefault();
@@ -669,18 +706,6 @@
             // let newValue = 2;
             // stateIdInput.val(newValue);
             // input.val(newValue);
-
-            console.log('hey!');
-
-            var generatedCellStateArray = createNewCellStates(
-                generation,
-                states,
-                cells,
-                cell_contacts,
-                cell_state_map[generation],
-            );
-
-            requestSaveCellStates(generatedCellStateArray);
         });
 
         /*
@@ -719,6 +744,27 @@
             $domCell.attr("id", cellId);
             $domCell.attr("state_id", cellStateId);
             // alert(stateId);
+
+            // test code
+
+            {{--$(".btn-submit").click(function(e){--}}
+
+            {{--    e.preventDefault();--}}
+
+            {{--    var name = $("input[name=name]").val();--}}
+            {{--    var password = $("input[name=password]").val();--}}
+            {{--    var email = $("input[name=email]").val();--}}
+
+            {{--    $.ajax({--}}
+            {{--        type:'POST',--}}
+            {{--        url:"{{ route('ajaxRequest.post') }}",--}}
+            {{--        data:{name:name, password:password, email:email},--}}
+            {{--        success:function(data){--}}
+            {{--            alert(data.success);--}}
+            {{--        }--}}
+            {{--    });--}}
+
+            {{--});--}}
         }
 
         /*
