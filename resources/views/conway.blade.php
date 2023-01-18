@@ -513,9 +513,24 @@
         let states = [];
         let cells = [];
         let cell_contacts = [];
-        let cell_state_map = []; // { generation1: [ { id:1, cell_id: 1, state_id: 1, generation:1 } ], generation_2: [...], ... }
-        let cell_contact_map = []; // { cell_1_id: [ cell_contact_1_id, cell_contact_2_id ], cell_2_id: [...], ...}
-        let cell_contact_state_map = []; //
+
+        // { generation_n: [ cell_state_n, ... ], ... } where
+        // 'generation' is number (int) of current generation,
+        // 'cell_state' is { id:1, cell_id: 1, state_id: 1, generation:1 }
+        let cell_state_map = [];
+
+        // { cell_n_id: [ cell_contact_cell_n_id, ... ], ... } where
+        // 'cell_id' is id number (int) of current cell,
+        // 'cell_contact_cell_id' is id number (int) of the 'contact' cell (neighbour)
+        let cell_contact_map = [];
+
+        // { generation_n: { cell_n_id: { state_id: 1, contact_cell_state_counters: [ { state_1_id: 5;  state_2_id: 3; ... }, ... ], }, ... }, ... } where
+        // 'generation' is number (int) of current generation,
+        // 'cell_id' is id number (int) of current cell,
+        // 'state_id' is id number (int) of state of the current cell,
+        // 'contact_cell_state_counters' is array with metadata:
+        // it contains calculated numbers (counters or totals) of states of the current cell neighbours (contacts)
+        let cell_state_counter_map = [];
 
         // DOM objects
         let $domCellStateMap = jQuery(".map");
@@ -572,7 +587,7 @@
 
         function callbackGetCellStates(gen, response) {
             cell_state_map[gen] = structuredClone(response);
-            initCellContactStateMap(gen);
+            initCellStateCounterMap(gen);
         }
 
         /**
@@ -599,7 +614,7 @@
         function callbackSaveCellStates(gen, response) {
             generation = gen;
             cell_state_map[gen] = structuredClone(response);
-            initCellContactStateMap(gen);
+            initCellStateCounterMap(gen);
         }
 
         /*
@@ -660,42 +675,48 @@
                     // find the state_id of this cell_contact_cell_id (from cell_state_map[generation])
                     let state_id = cell_state_map[gen][cell_contact_cell_id];
                     // increase the appropriate counter
-                    cell_contact_state_map[gen][cell_id][state_id] = (cell_contact_state_map[gen][cell_id][state_id] + 1);
+                    cell_state_counter_map[gen][cell_id][state_id] = (cell_state_counter_map[gen][cell_id][state_id] + 1);
                 });
 
                 // return cell_contact_map[generation][cell_id];
             });
         }
 
-        function initCellContactStateMap(gen)
+        function initCellStateCounterMap(gen)
         {
             // check and initialize for the very first time
 
-            if (cell_contact_state_map[gen] == undefined) {
-                cell_contact_state_map[gen] = [];
+            if (cell_state_counter_map[gen] == undefined) {
+                cell_state_counter_map[gen] = [];
             }
 
             // for each cell
             cells.forEach(function (cell, index) {
                 // cell_contact_state_map[generation][cell.id] = [];
-                cell_contact_state_map[gen][cell.id] = [];
+                cell_state_counter_map[gen][cell.id] = [];
 
                 // for each state
                 states.forEach(function (state, index) {
                     // counter
-                    cell_contact_state_map[gen][cell.id][state.id] = 0;
+                    cell_state_counter_map[gen][cell.id][state.id] = 0;
                 });
             });
-            // todo cell_contact_map, cell_state_map and cell_contact_state_map should be the same structure
+            // todo cell_contact_map, cell_state_map and cell_contact_state_map should be in the proper structure
+            console.log("-----------------------");
+            console.log("-----------------------");
             console.log("-----------------------");
             console.log(2);
+            console.log("-----------------------");
+            console.log("-----------------------");
+            console.log("-----------------------");
             console.log(cell_contact_map);
             console.log(cell_state_map);
             console.log(cell_state_map[gen]);
-            console.log(cell_contact_state_map);
+            console.log(cell_state_counter_map);
+            console.log("-----------------------");
+            console.log("-----------------------");
             console.log("-----------------------");
             console.log(3);
-            console.log("-----------------------");
             console.log(4);
             console.log("-----------------------");
             console.log("-----------------------");
