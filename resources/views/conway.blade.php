@@ -526,7 +526,7 @@
          */
 
         /*
-        API services
+        Services: API
          */
 
         function requestGetStates() {
@@ -552,9 +552,13 @@
                 url: "{{ route('cell_contacts.index') }}",
                 method: 'get',
                 success: function(response) {
-                    cell_contacts = structuredClone(response);
-                    initCellContactMap();
+                    callbackGetCellContacts(response);
                 }});
+        }
+
+        function callbackGetCellContacts(response) {
+            cell_contacts = structuredClone(response);
+            initCellContactMap();
         }
 
         function requestGetCellStates(generation) {
@@ -562,9 +566,13 @@
                 url: "{{ route('cell_states.index') }}" + "/" + generation,
                 method: 'get',
                 success: function(response) {
-                    cell_state_map[generation] = structuredClone(response);
-                    initCellContactStateMap();
+                    callbackGetCellStates(generation, response);
                 }});
+        }
+
+        function callbackGetCellStates(gen, response) {
+            cell_state_map[gen] = structuredClone(response);
+            initCellContactStateMap(gen);
         }
 
         /**
@@ -584,20 +592,117 @@
                     cell_states: cellStates,
                 },
                 success: function(response) {
-                    // console.log('requestSaveCellStates() success! request successive. response:');
-                    // console.log(response);
-                    generation = new_generation;
-                    cell_state_map[generation] = structuredClone(response);
+                    callbackSaveCellStates(new_generation, response);
                 }});
         }
 
+        function callbackSaveCellStates(gen, response) {
+            generation = gen;
+            cell_state_map[gen] = structuredClone(response);
+            initCellContactStateMap(gen);
+        }
+
         /*
-        ./ API services
+        ./ API
          */
 
         /*
-        Data generation
+        Services: data generation
          */
+
+        /**
+         *
+         * Ця функція initializes масив айдішників клітинок "сусідів" даної клітини.
+         * Перебирає масив cell_contacts, фільтрує елементи за параметром cell_id клітини (todo),
+         * знаходить контакти клітини і записує в глобальну змінну cell_contact_map.
+         *
+         */
+        function initCellContactMap()
+        {
+            cell_contacts.forEach(function (cell_contact, index, array) {
+
+                let cell_1_id = cell_contact.cell_1_id;
+                let cell_2_id = cell_contact.cell_2_id;
+
+                // check and initialize for the very first time
+                if (cell_contact_map[cell_1_id] == undefined) {
+                    cell_contact_map[cell_1_id] = [cell_2_id];
+                } else {
+                    cell_contact_map[cell_1_id].push(cell_2_id);
+                }
+            });
+        }
+
+        function initCellStateMap(gen)
+        {
+            // check and initialize for the very first time
+
+            if (cell_state_map[gen] == undefined) {
+                cell_state_map[gen] = [];
+            }
+
+            cell_state_map[gen].forEach(function (cell_state, index, cell_states) {
+
+                let cell_id = cell_state.cell_id;
+
+                // get cell contact ids
+                let cell_contact_cell_ids = cell_contact_map[cell_id] ?? [];
+                console.log(111111111111);
+                console.log(cell_id);
+                console.log(cell_contact_map);
+                console.log(22);
+                console.log(cell_contact_map[cell_id]);
+                console.log(cell_contact_map[100]);
+                console.log(cell_contact_cell_ids);
+                return;
+
+                cell_contact_cell_ids.forEach(function (cell_contact_cell_id) {
+                    // find the state_id of this cell_contact_cell_id (from cell_state_map[generation])
+                    let state_id = cell_state_map[gen][cell_contact_cell_id];
+                    // increase the appropriate counter
+                    cell_contact_state_map[gen][cell_id][state_id] = (cell_contact_state_map[gen][cell_id][state_id] + 1);
+                });
+
+                // return cell_contact_map[generation][cell_id];
+            });
+        }
+
+        function initCellContactStateMap(gen)
+        {
+            // check and initialize for the very first time
+
+            if (cell_contact_state_map[gen] == undefined) {
+                cell_contact_state_map[gen] = [];
+            }
+
+            // for each cell
+            cells.forEach(function (cell, index) {
+                // cell_contact_state_map[generation][cell.id] = [];
+                cell_contact_state_map[gen][cell.id] = [];
+
+                // for each state
+                states.forEach(function (state, index) {
+                    // counter
+                    cell_contact_state_map[gen][cell.id][state.id] = 0;
+                });
+            });
+            // todo cell_contact_map, cell_state_map and cell_contact_state_map should be the same structure
+            console.log("-----------------------");
+            console.log(2);
+            console.log(cell_contact_map);
+            console.log(cell_state_map);
+            console.log(cell_state_map[gen]);
+            console.log(cell_contact_state_map);
+            console.log("-----------------------");
+            console.log(3);
+            console.log("-----------------------");
+            console.log(4);
+            console.log("-----------------------");
+            console.log("-----------------------");
+            console.log("-----------------------");
+            return;
+            // return cell_contact_state_map[generation][cell_id];
+        }
 
         /**
          * якщо в живої клітини один чи немає живих сусідів – то вона помирає від «самотності»;
@@ -663,6 +768,7 @@
                 //     cellStateIdNew = 1;
                 // }
 
+                // todo object everywhere not array?
                 cell_state_new = {
                     cell_id: cell_id,
                     state_id: cell_state_id_new,
@@ -675,6 +781,13 @@
             return new_cell_states;
         }
 
+        console.log("Summertime sadness");
+
+        requestGetStates();
+        requestGetCells();
+        requestGetCellContacts();
+        requestGetCellStates(generation);
+
         /*
         ./ data generation
          */
@@ -683,15 +796,9 @@
         User input
          */
 
-        console.log("Summertime sadness");
-
-        requestGetStates();
-        requestGetCells();
-        requestGetCellContacts();
-        requestGetCellStates(generation);
-
         $domButton.click(function (e) {
             e.preventDefault();
+            console.log("Button click!");
 
             var generatedCellStateArray = createNewCellStates(
                 generation,
@@ -706,7 +813,7 @@
 
         jQuery(".cell").click(function (e) {
             e.preventDefault();
-            console.log("click!");
+            console.log("cell click!");
 
             // let input = $(this).find("input");
             // let stateIdInput = $(this).find("input [name=state_id]");
@@ -780,85 +887,6 @@
 
         /*
         ./ Output
-         */
-
-        /*
-        Helpers
-         */
-
-        /**
-         * Ця функція повертає масив айдішників клітинок "сусідів" даної клітини.
-         * Перебирає масив cell_contacts, фільтрує елементи за параметром cell_id клітини,
-         * знаходить контакти клітини і записує в глобальну змінну cell_contact_map.
-         *
-         * @param cell_id
-         * @returns {*}
-         */
-        function initCellContactMap()
-        {
-            cell_contacts.forEach(function (cell_contact, index, array) {
-
-                let cell_1_id = cell_contact.cell_1_id;
-                let cell_2_id = cell_contact.cell_2_id;
-
-                // check and initialize for the very first time
-                if (cell_contact_map[cell_1_id] == undefined) {
-                    // cell_contact_map[cell_1_id] = [];
-                    cell_contact_map[cell_1_id] = [cell_2_id];
-                } else {
-                    cell_contact_map[cell_1_id].push(cell_2_id);
-                }
-
-                // return cell_contact_map[cell_id];
-            });
-        }
-
-        function initCellContactStateMap()
-        {
-            // check and initialize for the very first time
-
-            if (cell_state_map[generation] == undefined) {
-                cell_state_map[generation] = [];
-            }
-
-            if (cell_contact_state_map[generation] == undefined) {
-                cell_contact_state_map[generation] = [];
-            }
-
-            // for each cells
-            if (cell_contact_state_map[generation][cell_id] == undefined) {
-                cell_contact_state_map[generation][cell_id] = [];
-
-                // for each states
-                states.forEach(function (state, index) {
-                    cell_contact_state_map[generation][cell_id][state.id] = 0; // counter
-                });
-            }
-
-            cell_state_map[generation].forEach(function (cell_state, index, cell_states) {
-
-                // let id = cell_state.id;
-                let cell_id = cell_state.cell_id;
-                let state_id = cell_state.state_id;
-                // let generation = cell_state.generation;
-
-                // get cell contact ids
-                let cell_contact_cell_ids = cell_contact_map[cell_id] ?? [];
-
-                cell_contact_cell_ids.forEach(function (cell_contact_cell_id) {
-                    // find the state_id of this cell_contact_cell_id (from cell_state_map[generation])
-                    // increase the appropriate counter
-                    // cell_contact_state_map[generation][cell_id]++;
-                });
-
-                // return cell_contact_map[generation][cell_id];
-            });
-
-            // return cell_contact_state_map[generation][cell_id];
-        }
-
-        /*
-        Helpers ./
          */
 
     });
