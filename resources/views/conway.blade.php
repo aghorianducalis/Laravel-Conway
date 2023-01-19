@@ -509,22 +509,21 @@
         Initialization of variables, data sets etc.
          */
 
-        let generation = 1;
         let states = [];
         let cells = [];
         let cell_contacts = [];
 
-        // { generation_n: [ cell_state_n, ... ], ... } where
+        // [ generation_n: [ cell_state_n, ... ], ... ] where
         // 'generation' is number (int) of current generation,
         // 'cell_state' is { id:1, cell_id: 1, state_id: 1, generation:1 }
         let cell_state_map = [];
 
-        // { cell_n_id: [ cell_contact_cell_n_id, ... ], ... } where
+        // [ cell_n_id: [ cell_contact_cell_n_id, ... ], ... ] where
         // 'cell_id' is id number (int) of current cell,
         // 'cell_contact_cell_id' is id number (int) of the 'contact' cell (neighbour)
         let cell_contact_map = [];
 
-        // { generation_n: { cell_n_id: { state_id: 1, contact_cell_state_counters: [ { state_1_id: 5;  state_2_id: 3; ... }, ... ], }, ... }, ... } where
+        // [ generation_n: [ cell_n_id: { state_id: 1, contact_cell_state_counters: [ { state_1_id: 5;  state_2_id: 3; ... }, ... ], }, ... ], ... ] where
         // 'generation' is number (int) of current generation,
         // 'cell_id' is id number (int) of current cell,
         // 'state_id' is id number (int) of state of the current cell,
@@ -586,18 +585,22 @@
         }
 
         function callbackGetCellStates(gen, response) {
-            cell_state_map[gen] = structuredClone(response);
-            initCellStateCounterMap(gen);
+            initCellStateMap(gen, structuredClone(response));
+
+            setTimeout(function() {
+                initCellStateCounterMap(gen);
+            }, 3000);
         }
 
         /**
          * Updates generation variable.
          *
+         * @param gen
          * @param cellStates array to send to db
          */
-        function requestSaveCellStates(cellStates) {
+        function requestSaveCellStates(gen, cellStates) {
 
-            let new_generation = generation + 1;
+            let new_generation = gen + 1;
 
             jQuery.ajax({
                 url: "{{ url('/cell_states') }}",
@@ -609,12 +612,6 @@
                 success: function(response) {
                     callbackSaveCellStates(new_generation, response);
                 }});
-        }
-
-        function callbackSaveCellStates(gen, response) {
-            generation = gen;
-            cell_state_map[gen] = structuredClone(response);
-            initCellStateCounterMap(gen);
         }
 
         /*
@@ -648,7 +645,7 @@
             });
         }
 
-        function initCellStateMap(gen)
+        function initCellStateMap(gen, cell_states)
         {
             // check and initialize for the very first time
 
@@ -656,30 +653,8 @@
                 cell_state_map[gen] = [];
             }
 
-            cell_state_map[gen].forEach(function (cell_state, index, cell_states) {
-
-                let cell_id = cell_state.cell_id;
-
-                // get cell contact ids
-                let cell_contact_cell_ids = cell_contact_map[cell_id] ?? [];
-                console.log(111111111111);
-                console.log(cell_id);
-                console.log(cell_contact_map);
-                console.log(22);
-                console.log(cell_contact_map[cell_id]);
-                console.log(cell_contact_map[100]);
-                console.log(cell_contact_cell_ids);
-                return;
-
-                cell_contact_cell_ids.forEach(function (cell_contact_cell_id) {
-                    // find the state_id of this cell_contact_cell_id (from cell_state_map[generation])
-                    let state_id = cell_state_map[gen][cell_contact_cell_id];
-                    // increase the appropriate counter
-                    cell_state_counter_map[gen][cell_id][state_id] = (cell_state_counter_map[gen][cell_id][state_id] + 1);
-                });
-
-                // return cell_contact_map[generation][cell_id];
-            });
+            // todo check if empty and so on validation?
+            cell_state_map[gen] = structuredClone(cell_states);
         }
 
         function initCellStateCounterMap(gen)
@@ -692,37 +667,44 @@
 
             // for each cell
             cells.forEach(function (cell, index) {
-                // cell_contact_state_map[generation][cell.id] = [];
-                cell_state_counter_map[gen][cell.id] = [];
+                if (cell_state_counter_map[gen][cell.id] == undefined) {
+                    cell_state_counter_map[gen][cell.id] = { 'cell_id': cell.id, 'states_neighbour': []};
+                }
 
                 // for each state
                 states.forEach(function (state, index) {
-                    // counter
-                    cell_state_counter_map[gen][cell.id][state.id] = 0;
+                    if (cell_state_counter_map[gen][cell.id]['states_neighbour'][state.id] == undefined) {
+                        cell_state_counter_map[gen][cell.id]['states_neighbour'][state.id] = 0;
+                    }
                 });
             });
-            // todo cell_contact_map, cell_state_map and cell_contact_state_map should be in the proper structure
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log(2);
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log(cell_contact_map);
-            console.log(cell_state_map);
-            console.log(cell_state_map[gen]);
-            console.log(cell_state_counter_map);
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log(3);
-            console.log(4);
-            console.log("-----------------------");
-            console.log("-----------------------");
-            console.log("-----------------------");
-            return;
-            // return cell_contact_state_map[generation][cell_id];
+
+            // do calculations of totals
+
+            let cell_states_of_generation = cell_state_map[gen] ?? [];
+
+            cell_states_of_generation.forEach(function (cell_state, index, cell_states_param) {
+
+                // get cell contact ids
+                let cell_contact_cell_ids = cell_contact_map[cell_state.cell_id] ?? [];
+
+                cell_contact_cell_ids.forEach(function (cell_contact_cell_id) {
+                    // find the state_id of this cell_contact_cell_id
+                    let contact_state = cell_states_of_generation[cell_contact_cell_id] ?? [];
+
+                    cell_states_of_generation.forEach(function (cell_state_temp) {
+                        if (cell_state_temp['cell_id'] === cell_contact_cell_id) {
+                            let contact_state_id = cell_state_temp['state_id'];
+
+                            // increase the appropriate counter
+                            cell_state_counter_map[gen][cell_state.cell_id]['states_neighbour'][contact_state_id]++;
+
+                            // we can stop walking through, because there is exactly 1 'cell-state' relation per generation
+                            return;
+                        }
+                    });
+                });
+            });
         }
 
         /**
@@ -802,12 +784,30 @@
             return new_cell_states;
         }
 
-        console.log("Summertime sadness");
+        /*
+        Game
+         */
+
+        console.log("-----------------------");
+        console.log("Let's gooooooo!");
+
+        // todo make an object
+        let generation = 1;
 
         requestGetStates();
         requestGetCells();
         requestGetCellContacts();
         requestGetCellStates(generation);
+
+        function callbackSaveCellStates(gen, response) {
+            // generation = gen;
+            // initCellStateMap(gen, structuredClone(response));
+            // initCellStateCounterMap(gen);
+        }
+
+        /*
+        Game over 8)
+         */
 
         /*
         ./ data generation
@@ -821,15 +821,18 @@
             e.preventDefault();
             console.log("Button click!");
 
+            let new_generation = generation + 1;
+
+            // todo rewrite
             var generatedCellStateArray = createNewCellStates(
-                generation,
+                new_generation,
                 states,
                 cells,
                 cell_contacts,
-                cell_state_map[generation],
+                cell_state_map[new_generation],
             );
 
-            // requestSaveCellStates(generatedCellStateArray);
+            requestSaveCellStates(new_generation, generatedCellStateArray);
         });
 
         jQuery(".cell").click(function (e) {
@@ -845,6 +848,28 @@
             // stateIdInput.val(newValue);
             // input.val(newValue);
 
+            console.log("-----------------------");
+            console.log(2);
+            console.log("-----------------------");
+            console.log(generation);
+            console.log(states);
+            console.log(cells);
+            console.log(cell_contacts);
+            console.log("-----------------------");
+            console.log(cell_contact_map);
+            console.log("-----------------------");
+            console.log(cell_state_map);
+            console.log("-----------------------");
+            console.log(cell_state_map[generation]);
+            console.log("-----------------------");
+            console.log(3);
+            console.log("-----------------------");
+            console.log(cell_state_counter_map);
+            console.log("-----------------------");
+            console.log(4);
+            console.log("-----------------------");
+            console.log("-----------------------");
+            return;
         });
 
         /*
