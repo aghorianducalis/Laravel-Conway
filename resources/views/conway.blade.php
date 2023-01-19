@@ -593,24 +593,21 @@
         }
 
         /**
-         * Updates generation variable.
+         * Send request to server to save the new generation of cell states/
          *
-         * @param gen
-         * @param cellStates array to send to db
+         * @param new_gen
+         * @param cell_states array with cell state data to send to db
          */
-        function requestSaveCellStates(gen, cellStates) {
-
-            let new_generation = gen + 1;
-
+        function requestSaveCellStates(new_gen, cell_states) {
             jQuery.ajax({
                 url: "{{ url('/cell_states') }}",
                 method: 'post',
                 data: {
-                    generation: new_generation,
-                    cell_states: cellStates,
+                    generation: new_gen,
+                    cell_states: cell_states,
                 },
                 success: function(response) {
-                    callbackSaveCellStates(new_generation, response);
+                    callbackSaveCellStates(new_gen, response);
                 }});
         }
 
@@ -716,63 +713,46 @@
          * here we already got all necessary data:
          * states, cells, cell contacts, cell states for previous generation
          *
-         * @param generation
-         * @param states
-         * @param cells
-         * @param cell_contacts
+         * @param new_generation
          * @param previous_cell_states
          */
         function createNewCellStates(
-            generation,
-            states,
-            cells,
-            cell_contacts,
+            new_generation,
             previous_cell_states,
         )
         {
-
-            // console.log("createNewCellStates()");
-            // console.log(generation);
-            // console.log(states);
-            // console.log(cells);
-            // console.log(cell_contacts);
-            // console.log(previous_cell_states);
-
             let new_cell_states = [];
-            let new_generation = generation + 1;
 
             previous_cell_states.forEach(function (cell_state, index, array) {
 
-                // console.log("forEach");
-                // console.log(cell_state);
-
                 let cell_id = cell_state.cell_id;
                 let state_id_old = cell_state.state_id;
-                let cell_state_id_new = state_id_old;// todo
-                let cell_state_new;
-                let neighbourStateCount = 3;
+                let cell_state_id_new = state_id_old;
 
-                // if (stateIdOld === 1) {
-                //     if (neighbourStateCount === 3) {
-                //         cellStateIdNew = 1;
-                //     }
-                // } else if (stateIdOld === 2) {
-                //     if (neighbourStateCount < 2) {
-                //         cellStateIdNew = 1;
-                //     } else if (
-                //         neighbourStateCount === 2 ||
-                //         neighbourStateCount === 3
-                //     ) {
-                //         cellStateIdNew = 2;
-                //     } else {
-                //         cellStateIdNew = 1;
-                //     }
-                // } else {
-                //     cellStateIdNew = 1;
-                // }
+                // todo check this
+                let neighbour_state_count = cell_state_counter_map[(new_generation - 1)][cell_id]['states_neighbour'][2];
+
+                if (state_id_old === 1) {
+                    if (neighbour_state_count === 3) {
+                        cell_state_id_new = 1;
+                    }
+                } else if (state_id_old === 2) {
+                    if (neighbour_state_count < 2) {
+                        cell_state_id_new = 1;
+                    } else if (
+                        neighbour_state_count === 2 ||
+                        neighbour_state_count === 3
+                    ) {
+                        cell_state_id_new = 2;
+                    } else {
+                        cell_state_id_new = 1;
+                    }
+                } else {
+                    cell_state_id_new = 1;
+                }
 
                 // todo object everywhere not array?
-                cell_state_new = {
+                let cell_state_new = {
                     cell_id: cell_id,
                     state_id: cell_state_id_new,
                     generation: new_generation,
@@ -799,10 +779,15 @@
         requestGetCellContacts();
         requestGetCellStates(generation);
 
-        function callbackSaveCellStates(gen, response) {
-            // generation = gen;
-            // initCellStateMap(gen, structuredClone(response));
-            // initCellStateCounterMap(gen);
+        function callbackSaveCellStates(new_gen, response) {
+            initCellStateMap(new_gen, structuredClone(response));
+
+            setTimeout(function() {
+                initCellStateCounterMap(new_gen);
+
+                // Updates generation variable
+                generation = generation + 1;
+            }, 3000);
         }
 
         /*
@@ -819,17 +804,12 @@
 
         $domButton.click(function (e) {
             e.preventDefault();
-            console.log("Button click!");
 
             let new_generation = generation + 1;
 
-            // todo rewrite
-            var generatedCellStateArray = createNewCellStates(
+            let generatedCellStateArray = createNewCellStates(
                 new_generation,
-                states,
-                cells,
-                cell_contacts,
-                cell_state_map[new_generation],
+                cell_state_map[generation],
             );
 
             requestSaveCellStates(new_generation, generatedCellStateArray);
@@ -847,29 +827,6 @@
             // let newValue = 2;
             // stateIdInput.val(newValue);
             // input.val(newValue);
-
-            console.log("-----------------------");
-            console.log(2);
-            console.log("-----------------------");
-            console.log(generation);
-            console.log(states);
-            console.log(cells);
-            console.log(cell_contacts);
-            console.log("-----------------------");
-            console.log(cell_contact_map);
-            console.log("-----------------------");
-            console.log(cell_state_map);
-            console.log("-----------------------");
-            console.log(cell_state_map[generation]);
-            console.log("-----------------------");
-            console.log(3);
-            console.log("-----------------------");
-            console.log(cell_state_counter_map);
-            console.log("-----------------------");
-            console.log(4);
-            console.log("-----------------------");
-            console.log("-----------------------");
-            return;
         });
 
         /*
