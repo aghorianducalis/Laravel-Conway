@@ -781,9 +781,34 @@
             return new_cell_states;
         }
 
-        /*
-        ./ data generation
-         */
+        function createNewGeneration() {
+            let new_generation = generation + 1;
+
+            let generatedCellStateArray = createNewCellStates(
+                new_generation,
+                cell_state_map[generation],
+            );
+
+            requestSaveCellStates(new_generation, generatedCellStateArray);
+        }
+
+        function generateCellState(old_state_id) {
+            var new_state_id;
+
+            switch (old_state_id) {
+                case "1":
+                    new_state_id = 2;
+                    break;
+                case "2":
+                    new_state_id = 1;
+                    break;
+                default:
+                    new_state_id = 1;
+                    break;
+            }
+
+            return { "state_id": new_state_id };
+        }
 
         /*
         ./ Services
@@ -796,20 +821,33 @@
         $domButton.click(function (e) {
             e.preventDefault();
 
-            let new_generation = generation + 1;
-
-            let generatedCellStateArray = createNewCellStates(
-                new_generation,
-                cell_state_map[generation],
-            );
-
-            requestSaveCellStates(new_generation, generatedCellStateArray);
+            createNewGeneration();
         });
 
         jQuery(".cell").click(function (e) {
-            e.preventDefault();
-            console.log("cell click!");
+            e.preventDefault(e);
+
+            cellOnClickHandler(e, $(this));
         });
+
+        function cellOnClickHandler(e, $domCell) {
+
+            var old_state_id = $domCell.attr("data-state_id");
+            var new_state = generateCellState(old_state_id);
+            var state_id = new_state.state_id;
+
+            // todo update js variables (maps)
+
+            // set the state_id to DOM element's attribute
+            $domCell.attr("data-state_id", state_id);
+            // $domCell.dataset("state_id", state_id);
+
+            if (state_id === 2) {
+                $domCell.addClass("alive");
+            } else {
+                $domCell.removeClass("alive");
+            }
+        }
 
         /*
         ./ User input
@@ -852,8 +890,8 @@
 
                         // set the metadata to DOM element's attributes
 
-                        $domCell.attr("id", cell_id);
-                        $domCell.attr("state_id", cell_state.state_id);
+                        $domCell.attr("data-id", cell_id);
+                        $domCell.attr("data-state_id", cell_state.state_id);
 
                         if (cell_state.state_id === 2) {
                             $domCell.addClass("alive");
@@ -872,7 +910,8 @@
          */
 
         console.log("-----------------------");
-        console.log("Let's gooooooo!");
+        console.log("START");
+        console.log("-----------------------");
 
         requestGetStates();
         requestGetCells();
