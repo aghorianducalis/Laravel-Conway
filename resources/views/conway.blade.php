@@ -424,12 +424,15 @@
         .map .cell:hover {
             opacity: 0.5;
         }
+
+        .map .cell.alive {
+            background: #c8fa64;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 </head>
 <body class="antialiased">
-<div
-    class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
+<div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
     @if (Route::has('login'))
         <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
             @auth
@@ -453,48 +456,37 @@
         >TEMPO!</button>
 
         <div class="container map">
-        @php
-
-            /** @var int $ct */
-            $ct = 0;
-
-            /** @var int $maximumX */
-            $maximumX = 10;
-
-            /** @var int $maximumY */
-            $maximumY = 10;
-
-            /** @var int $z */
-            $z = 0;
-
-            for($x = 0; $x < $maximumX; $x++) {
-        @endphp
-        <div class="row">
             @php
-                for($y = 0; $y < $maximumY; $y++) {
+                $ct = 0;
+                $maximumX = 10;
+                $maximumY = 10;
+                $z = 0;
+
+                for($x = 0; $x < $maximumX; $x++) {
             @endphp
-            <div class="col">
-                <div class="cell"
-                     data-id=
+            <div class="row">
+                @php
+                    for($y = 0; $y < $maximumY; $y++) {
+                @endphp
+                <div class="col">
+                    <div class="cell"
+                         data-id=
                          data-ct=0
-                     data-x={{ $x }}
-                     data-y={{ $y }}
-                     data-z=0
-                     data-state_id=1
-                >
-                    @php
-                        //
-                    @endphp
+                         data-x={{ $x }}
+                         data-y={{ $y }}
+                         data-z=0
+                         data-state_id=1
+                    >
+                    </div>
                 </div>
+                @php
+                    }
+                @endphp
             </div>
             @php
                 }
             @endphp
         </div>
-        @php
-            }
-        @endphp
-    </div>
 </div>
 <script>
     jQuery(document).ready(function() {
@@ -508,6 +500,9 @@
         /*
         Initialization of variables, data sets etc.
          */
+
+        // todo make an object
+        let generation = 1;
 
         let states = [];
         let cells = [];
@@ -570,11 +565,6 @@
                 }});
         }
 
-        function callbackGetCellContacts(response) {
-            cell_contacts = structuredClone(response);
-            initCellContactMap();
-        }
-
         function requestGetCellStates(generation) {
             jQuery.ajax({
                 url: "{{ route('cell_states.index') }}" + "/" + generation,
@@ -584,16 +574,24 @@
                 }});
         }
 
+        function callbackGetCellContacts(response) {
+            cell_contacts = structuredClone(response);
+            initCellContactMap();
+        }
+
         function callbackGetCellStates(gen, response) {
             initCellStateMap(gen, structuredClone(response));
 
             setTimeout(function() {
                 initCellStateCounterMap(gen);
+
+                // render DOM
+                updateDOMCellStateMap(generation);
             }, 3000);
         }
 
         /**
-         * Send request to server to save the new generation of cell states/
+         * Send request to server to save the new generation of cell states.
          *
          * @param new_gen
          * @param cell_states array with cell state data to send to db
@@ -611,12 +609,27 @@
                 }});
         }
 
+        function callbackSaveCellStates(new_gen, response) {
+            // Updates global generation variable
+            generation = new_gen;
+
+            initCellStateMap(new_gen, structuredClone(response));
+
+            setTimeout(function() {
+
+                initCellStateCounterMap(new_gen);
+
+                // render DOM
+                updateDOMCellStateMap(new_gen);
+            }, 1000);
+        }
+
         /*
         ./ API
          */
 
         /*
-        Services: data generation
+        Services: init helper variables to keep the data in handy way
          */
 
         /**
@@ -704,6 +717,10 @@
             });
         }
 
+        /*
+        Services: data generation
+         */
+
         /**
          * якщо в живої клітини один чи немає живих сусідів – то вона помирає від «самотності»;
          * якщо в живої клітини два чи три живих сусіди – то вона лишається жити;
@@ -765,41 +782,15 @@
         }
 
         /*
-        Game
-         */
-
-        console.log("-----------------------");
-        console.log("Let's gooooooo!");
-
-        // todo make an object
-        let generation = 1;
-
-        requestGetStates();
-        requestGetCells();
-        requestGetCellContacts();
-        requestGetCellStates(generation);
-
-        function callbackSaveCellStates(new_gen, response) {
-            initCellStateMap(new_gen, structuredClone(response));
-
-            setTimeout(function() {
-                initCellStateCounterMap(new_gen);
-
-                // Updates generation variable
-                generation = generation + 1;
-            }, 3000);
-        }
-
-        /*
-        Game over 8)
-         */
-
-        /*
         ./ data generation
          */
 
         /*
-        User input
+        ./ Services
+         */
+
+        /*
+        User input: event listeners, callbacks, data binding, etc.
          */
 
         $domButton.click(function (e) {
@@ -818,15 +809,6 @@
         jQuery(".cell").click(function (e) {
             e.preventDefault();
             console.log("cell click!");
-
-            // let input = $(this).find("input");
-            // let stateIdInput = $(this).find("input [name=state_id]");
-            // let value = input.val();
-            // let stateId = stateIdInput.val();
-            // alert(stateId);
-            // let newValue = 2;
-            // stateIdInput.val(newValue);
-            // input.val(newValue);
         });
 
         /*
@@ -839,58 +821,63 @@
 
         function updateDOMCellStateMap(generation) {
 
-            // console.log("updateDOMCellStateMap(): generation = " + generation);
-            let cellStateDataArray = cell_state_map[generation];
-            // console.log(cellStateDataArray);
+            // 1) get the data from the helper variables (already initialized)
 
-            let x = 0;
-            let y = 0;
+            // array of 'cell_state' objects
+            let cell_states_of_generation = cell_state_map[generation] ?? [];
 
-            // todo find cell data by ct, x, y, z (generation?)
-            let cellData = cellStateDataArray[1];
-            // console.log("cellData");
-            // console.log(cellData);
+            cell_states_of_generation.forEach(function (cell_state, index, cell_states_param) {
 
-            // get the cell's id and related state
-            let cellId = cellData;
-            let cellStateId = cellData;
-            let newValue = 2;
+                // find the cell by id
+                // todo level this method up and move to CellCollection object
+                cells.forEach(function (cell_temp, index) {
 
-            // todo check
-            let $domCell = $domCellStateMap.find(".cell[data-x=" + x + "]" + "[data-y=" + y + "]");
-            // console.log("$domCell");
-            // console.log($domCell);
+                    let cell_id = cell_state.cell_id;
 
-            // set dom cell attributes with data
-            $domCell.attr("id", cellId);
-            $domCell.attr("state_id", cellStateId);
-            // alert(stateId);
+                    if (cell_temp.id === cell_id) {
 
-            // test code
+                        // let ct = cell_temp.ct;
+                        let x = cell_temp.x;
+                        let y = cell_temp.y;
+                        // let z = cell_temp.z;
 
-            {{--$(".btn-submit").click(function(e){--}}
+                        // 2) work with DOM: bind data to DOM elements
+                        // todo use data binding
 
-            {{--    e.preventDefault();--}}
+                        // find the DOM element of cell by {ct, x, y, z}
+                        let $domCell = $domCellStateMap.find(".cell[data-x=" + x + "]" + "[data-y=" + y + "]");
 
-            {{--    var name = $("input[name=name]").val();--}}
-            {{--    var password = $("input[name=password]").val();--}}
-            {{--    var email = $("input[name=email]").val();--}}
+                        // todo map the current 'cell' variable to DOM object
+                        // cells[index].dom_data = $domCell;
 
-            {{--    $.ajax({--}}
-            {{--        type:'POST',--}}
-            {{--        url:"{{ route('ajaxRequest.post') }}",--}}
-            {{--        data:{name:name, password:password, email:email},--}}
-            {{--        success:function(data){--}}
-            {{--            alert(data.success);--}}
-            {{--        }--}}
-            {{--    });--}}
+                        // set the metadata to DOM element's attributes
 
-            {{--});--}}
+                        $domCell.attr("id", cell_id);
+                        $domCell.attr("state_id", cell_state.state_id);
+
+                        if (cell_state.state_id === 2) {
+                            $domCell.addClass("alive");
+                        }
+                    }
+                });
+            });
         }
 
         /*
         ./ Output
          */
+
+        /*
+        Game
+         */
+
+        console.log("-----------------------");
+        console.log("Let's gooooooo!");
+
+        requestGetStates();
+        requestGetCells();
+        requestGetCellContacts();
+        requestGetCellStates(generation);
 
     });
 </script>
