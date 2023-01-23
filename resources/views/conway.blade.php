@@ -432,7 +432,7 @@
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 </head>
 <body class="antialiased">
-<div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
+<div class="container {{--container-fluid--}} relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
     @if (Route::has('login'))
         <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
             @auth
@@ -447,18 +447,78 @@
         </div>
     @endif
 
-        <form method="POST" action="" method="POST">
-            @csrf
+    <div class="row">
+        <div class="col-3">
+            <form method="POST" action="">
+                @csrf
 
-            <button type="submit"
-                    class="btn btn-primary btn-outline-primary"
-                    id="button"
-                    data-toggle="button"
-                    aria-pressed="false"
-                    autocomplete="off">TEMPO!</button>
-        </form>
+                {{--            <fieldset disabled>--}}
+                {{--                <legend>Disabled fieldset example</legend>--}}
+                {{--                <div class="mb-3">--}}
+                {{--                    <label for="disabledTextInput" class="form-label">Disabled input</label>--}}
+                {{--                    <input type="text" id="disabledTextInput" class="form-control" placeholder="Disabled input">--}}
+                {{--                </div>--}}
+                {{--                <div class="mb-3">--}}
+                {{--                    <label for="disabledSelect" class="form-label">Disabled select menu</label>--}}
+                {{--                    <select id="disabledSelect" class="form-select">--}}
+                {{--                        <option>Disabled select</option>--}}
+                {{--                    </select>--}}
+                {{--                </div>--}}
+                {{--                <div class="mb-3">--}}
+                {{--                    <div class="form-check">--}}
+                {{--                        <input class="form-check-input" type="checkbox" id="disabledFieldsetCheck" disabled>--}}
+                {{--                        <label class="form-check-label" for="disabledFieldsetCheck">--}}
+                {{--                            Can't check this--}}
+                {{--                        </label>--}}
+                {{--                    </div>--}}
+                {{--                </div>--}}
+                {{--            </fieldset>--}}
 
-        <div class="container map">
+                {{--            <input class="form-control" id="disabledInput" type="text" placeholder="Disabled input here..." disabled>--}}
+                <div class="form-group">
+                    <label for="maximum_y">Rows</label>
+                    <input type="number" max="10" min="10" class="form-control" aria-label="Rows" id="maximum_y" value="10">
+                </div>
+
+                <div class="form-group">
+                    <label for="maximum_x">Columns</label>
+                    <input type="number" max="10" min="10" class="form-control" aria-label="Columns" id="maximum_x" value="10">
+                </div>
+
+                <div class="form-group">
+                    <label for="zoom">Zoom</label>
+                    <input type="number" max="8" min="8" class="form-control" aria-label="Zoom" id="zoom" value="8">
+                </div>
+
+                <div class="form-group">
+                    <label for="margin">Margin</label>
+                    <input type="number" max="1" min="1" class="form-control" aria-label="Margin" id="margin" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="interval">Interval</label>
+                    <input type="number" max="50" min="50" class="form-control" aria-label="Interval" id="interval" value="50">
+                </div>
+
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="is_square" checked>
+                    <label class="form-check-label" for="is_square">Is square</label>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary btn-outline-primary"
+                        id="button"
+                        data-toggle="button"
+                        aria-pressed="false"
+                        autocomplete="off">TEMPO!</button>
+
+                <button type="button"
+                        class="btn btn-secondary btn-outline-secondary"
+                        id="restartBtn">Restart</button>
+            </form>
+        </div>
+
+        <div class="col-9 map">
             @php
                 $ct = 0;
                 $maximumX = 10;
@@ -474,11 +534,11 @@
                 <div class="col">
                     <div class="cell"
                          data-id=
-                         data-ct=0
+                         data-ct={{ $ct }}
                          data-x={{ $x }}
                          data-y={{ $y }}
-                         data-z=0
-                         data-state_id=1
+                         data-z={{ $z }}
+                         data-state_id=
                     >
                     </div>
                 </div>
@@ -490,8 +550,8 @@
                 }
             @endphp
         </div>
+    </div>
 </div>
-<script type="text/javascript" src="{{ asset('conway.js') }}"></script>
 <script src="https://code.jquery.com/jquery-3.6.3.js"
         integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM="
         crossorigin="anonymous">
@@ -502,5 +562,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+<script type="text/javascript" src="{{ asset('conway.js') }}"></script>
 </body>
 </html>

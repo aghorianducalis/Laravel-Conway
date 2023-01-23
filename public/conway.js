@@ -42,11 +42,12 @@ jQuery(document).ready(function() {
     });
 
     /*
-    Initialization of variables of DOM objects
+    DOM objects
      */
 
     let $domCellStateMap = jQuery(".map");
-    let $domButton = jQuery("#button");
+    let $domButtonSubmit = jQuery("#button");
+    let $domButtonRestart = jQuery("#restartBtn");
 
     /*
     Game
@@ -69,14 +70,14 @@ jQuery(document).ready(function() {
     User input: event listeners, callbacks, data binding, etc.
      */
 
-    $domButton.click(function (e) {
+    $domButtonSubmit.click(function (e) {
         e.preventDefault();
 
         createNewGeneration();
     });
 
     jQuery(".cell").click(function (e) {
-        e.preventDefault(e);
+        e.preventDefault();
 
         cellOnClickHandler(e, $(this));
     });
@@ -84,20 +85,26 @@ jQuery(document).ready(function() {
     function cellOnClickHandler(e, $domCell) {
 
         var old_state_id = $domCell.attr("data-state_id");
-        var new_state = generateCellState(old_state_id);
-        var state_id = new_state.state_id;
+        var new_state_id = changeCellState(old_state_id);
 
-        // todo update js variables (maps)
+        // set the new_state_id to DOM element's attribute
+        $domCell.attr("data-state_id", new_state_id);
+        // $domCell.dataset("state_id", new_state_id);
 
-        // set the state_id to DOM element's attribute
-        $domCell.attr("data-state_id", state_id);
-        // $domCell.dataset("state_id", state_id);
-
-        if (state_id === 2) {
+        if (new_state_id === 2) {
             $domCell.addClass("alive");
         } else {
             $domCell.removeClass("alive");
         }
+    }
+
+    function changeCellState(old_state_id) {
+        var new_state = generateCellState(old_state_id);
+        var new_state_id = new_state.state_id;
+
+        // todo update js variables (maps)
+
+        return new_state_id;
     }
 
     /*
