@@ -3,22 +3,23 @@
 Initialization of variables, data sets etc.
  */
 
-// todo make an object
+// todo make an objects
+
 let generation = 1;
 
 let states = [];
 let cells = [];
 let cell_contacts = [];
 
-// [ generation_n: [ cell_state_n, ... ], ... ] where
-// 'generation' is number (int) of current generation,
-// 'cell_state' is { id:1, cell_id: 1, state_id: 1, generation:1 }
-let cell_state_map = [];
-
 // [ cell_n_id: [ cell_contact_cell_n_id, ... ], ... ] where
 // 'cell_id' is id number (int) of current cell,
 // 'cell_contact_cell_id' is id number (int) of the 'contact' cell (neighbour)
 let cell_contact_map = [];
+
+// [ generation_n: [ cell_state_n, ... ], ... ] where
+// 'generation' is number (int) of current generation,
+// 'cell_state' is { id:1, cell_id: 1, state_id: 1, generation:1 }
+let cell_state_map = [];
 
 // [ generation_n: [ cell_n_id: { state_id: 1, contact_cell_state_counters: [ { state_1_id: 5;  state_2_id: 3; ... }, ... ], }, ... ], ... ] where
 // 'generation' is number (int) of current generation,
@@ -63,7 +64,7 @@ jQuery(document).ready(function() {
     requestGetCellStates(generation);
 
     /*
-    ./ Initialization
+    ./ Game
      */
 
     /*
@@ -84,27 +85,47 @@ jQuery(document).ready(function() {
 
     function cellOnClickHandler(e, $domCell) {
 
-        var old_state_id = $domCell.attr("data-state_id");
-        var new_state_id = changeCellState(old_state_id);
+        var oldStateId = $domCell.attr("data-state-id");
+        var newState = generateCellState(oldStateId);
+        var newStateId = newState.id;
 
         // set the new_state_id to DOM element's attribute
-        $domCell.attr("data-state_id", new_state_id);
-        // $domCell.dataset("state_id", new_state_id);
+        $domCell.attr("data-state-id", newStateId);
 
-        if (new_state_id === 2) {
+        // todo update js variables (maps)
+        // console.log(111);
+        // console.log(cell_state_map[generation]);
+        // console.log(cell_state_counter_map[generation]);
+
+        // todo remove this
+        if (newStateId === 2) {
             $domCell.addClass("alive");
         } else {
             $domCell.removeClass("alive");
         }
     }
 
-    function changeCellState(old_state_id) {
-        var new_state = generateCellState(old_state_id);
-        var new_state_id = new_state.state_id;
+    function generateCellState(oldStateId) {
+        var newStateId;
 
-        // todo update js variables (maps)
+        switch (oldStateId) {
+            case "1":
+                newStateId = 2;
+                break;
+            case "2":
+                newStateId = 1;
+                break;
+            default:
+                newStateId = 1;
+                break;
+        }
 
-        return new_state_id;
+        // todo DTO
+        var newState = {
+            "id": newStateId,
+        };
+
+        return newState;
     }
 
     /*
@@ -146,13 +167,18 @@ jQuery(document).ready(function() {
                     // todo map the current 'cell' variable to DOM object
                     // cells[index].dom_data = $domCell;
 
+                    var newStateId = cell_state.state_id;
+
                     // set the metadata to DOM element's attributes
 
                     $domCell.attr("data-id", cell_id);
-                    $domCell.attr("data-state_id", cell_state.state_id);
+                    $domCell.attr("data-state-id", newStateId);
 
-                    if (cell_state.state_id === 2) {
+                    // todo remove this
+                    if (newStateId === 2) {
                         $domCell.addClass("alive");
+                    } else {
+                        $domCell.removeClass("alive");
                     }
                 }
             });
@@ -220,7 +246,7 @@ jQuery(document).ready(function() {
 
             // render DOM
             updateDOMCellStateMap(generation);
-        }, 3000);
+        }, 1000);
     }
 
     /**
@@ -432,24 +458,6 @@ jQuery(document).ready(function() {
         );
 
         requestSaveCellStates(new_generation, generatedCellStateArray);
-    }
-
-    function generateCellState(old_state_id) {
-        var new_state_id;
-
-        switch (old_state_id) {
-            case "1":
-                new_state_id = 2;
-                break;
-            case "2":
-                new_state_id = 1;
-                break;
-            default:
-                new_state_id = 1;
-                break;
-        }
-
-        return { "state_id": new_state_id };
     }
 
     /*

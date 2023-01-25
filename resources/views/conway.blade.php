@@ -533,12 +533,12 @@
                 @endphp
                 <div class="col">
                     <div class="cell"
-                         data-id=
+                         data-id="0"
+                         data-state-id="0"
                          data-ct={{ $ct }}
                          data-x={{ $x }}
                          data-y={{ $y }}
                          data-z={{ $z }}
-                         data-state_id=
                     >
                     </div>
                 </div>
