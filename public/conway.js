@@ -85,24 +85,32 @@ jQuery(document).ready(function() {
 
     function cellOnClickHandler(e, $domCell) {
 
+        var cellId = $domCell.attr("data-id");
         var oldStateId = $domCell.attr("data-state-id");
         var newState = generateCellState(oldStateId);
         var newStateId = newState.id;
 
-        // set the new_state_id to DOM element's attribute
-        $domCell.attr("data-state-id", newStateId);
+        // find cell state js object within 'cell_state_map' object
+        // todo move this code to 1 method: duplicate
+        // array of 'cell_state' objects
+        let cell_states_of_generation = cell_state_map[generation] ?? [];
+
+        // console.log(cell_states_of_generation);
+        cell_states_of_generation.forEach(function (cell_state, index, cell_states_param) {
+            if (cell_state.cell_id == cellId) {
+                cell_state.state_id = newStateId;
+                cell_state_map[generation][index] = cell_state;
+                return;
+            }
+        });
 
         // todo update js variables (maps)
-        // console.log(111);
-        // console.log(cell_state_map[generation]);
-        // console.log(cell_state_counter_map[generation]);
+        cell_state_counter_map[generation] = undefined;
+        initCellStateCounterMap(generation);
 
-        // todo remove this
-        if (newStateId === 2) {
-            $domCell.addClass("alive");
-        } else {
-            $domCell.removeClass("alive");
-        }
+        // set the new_state_id to DOM element's attribute
+        // todo optimize this
+        updateDOMCellStateMap(generation);
     }
 
     function generateCellState(oldStateId) {
@@ -327,29 +335,7 @@ jQuery(document).ready(function() {
         cell_state_map[gen] = structuredClone(cell_states);
     }
 
-    function initCellStateCounterMap(gen)
-    {
-        // check and initialize for the very first time
-
-        if (cell_state_counter_map[gen] == undefined) {
-            cell_state_counter_map[gen] = [];
-        }
-
-        // for each cell
-        cells.forEach(function (cell, index) {
-            if (cell_state_counter_map[gen][cell.id] == undefined) {
-                cell_state_counter_map[gen][cell.id] = { 'cell_id': cell.id, 'states_neighbour': []};
-            }
-
-            // for each state
-            states.forEach(function (state, index) {
-                if (cell_state_counter_map[gen][cell.id]['states_neighbour'][state.id] == undefined) {
-                    cell_state_counter_map[gen][cell.id]['states_neighbour'][state.id] = 0;
-                }
-            });
-        });
-
-        // do calculations of totals
+    function calculateCellStateCounters(gen) {
 
         let cell_states_of_generation = cell_state_map[gen] ?? [];
 
@@ -375,6 +361,32 @@ jQuery(document).ready(function() {
                 });
             });
         });
+    }
+
+    function initCellStateCounterMap(gen)
+    {
+        // check and initialize for the very first time
+
+        if (cell_state_counter_map[gen] == undefined) {
+            cell_state_counter_map[gen] = [];
+        }
+
+        // for each cell
+        cells.forEach(function (cell, index) {
+            if (cell_state_counter_map[gen][cell.id] == undefined) {
+                cell_state_counter_map[gen][cell.id] = { 'cell_id': cell.id, 'states_neighbour': []};
+            }
+
+            // for each state
+            states.forEach(function (state, index) {
+                if (cell_state_counter_map[gen][cell.id]['states_neighbour'][state.id] == undefined) {
+                    cell_state_counter_map[gen][cell.id]['states_neighbour'][state.id] = 0;
+                }
+            });
+        });
+
+        // do calculations of totals
+        calculateCellStateCounters(gen);
     }
 
     /*
@@ -419,7 +431,7 @@ jQuery(document).ready(function() {
 
             if (state_id_old === 1) {
                 if (neighbour_state_count === 3) {
-                    cell_state_id_new = 1;
+                    cell_state_id_new = 2;
                 }
             } else if (state_id_old === 2) {
                 if (neighbour_state_count < 2) {

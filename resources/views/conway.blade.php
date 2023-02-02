@@ -416,7 +416,6 @@
         .map .cell {
             width: 42px;
             height: 42px;
-            background: #2580ff;
             border: 1px solid white;
             cursor: pointer;
         }
@@ -426,7 +425,12 @@
         }
 
         .map .cell.alive {
+            /*.map .cell[data-state-id="2"] {*/
             background: #c8fa64;
+        }
+
+        .map .cell[data-state-id="1"] {
+            background: #64cdfa;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
